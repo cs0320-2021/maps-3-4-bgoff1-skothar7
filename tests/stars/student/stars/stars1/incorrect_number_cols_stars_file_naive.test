@@ -1,0 +1,5 @@
+INPUT
+stars data/stars/star-data-incorrect-col-number.csv
+OUTPUT
+ERROR:
+END

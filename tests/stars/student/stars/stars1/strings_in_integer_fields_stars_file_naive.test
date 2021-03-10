@@ -1,0 +1,5 @@
+INPUT
+stars data/star-data-strings-in-integer-fields.csv
+OUTPUT
+ERROR:
+END

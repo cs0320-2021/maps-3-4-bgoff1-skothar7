@@ -1,0 +1,5 @@
+INPUT
+stars star-data-all-fields-empty.csv
+OUTPUT
+ERROR:
+END

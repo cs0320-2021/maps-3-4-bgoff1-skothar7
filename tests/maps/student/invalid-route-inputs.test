@@ -1,0 +1,7 @@
+INPUT
+map data/maps/smallMaps.sqlite3
+route 41.8aaa206 -71.400s03 41YO.82 -71.4
+OUTPUT
+map set to data/maps/smallMaps.sqlite3
+ERROR:
+END

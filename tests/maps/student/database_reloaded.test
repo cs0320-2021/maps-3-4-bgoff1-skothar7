@@ -1,0 +1,11 @@
+INPUT
+map data/maps/smallMaps.sqlite3
+route 41.8203 -71.4003 41.8206 -71.4003
+map data/maps/maps.sqlite3
+route 41.54805 -71.4417 41.54819 -71.441598
+OUTPUT
+map set to data/maps/smallMaps.sqlite3
+/n/4 -> /n/5 : /w/6
+map set to data/maps/maps.sqlite3
+/n/4154.7144.201718333 -> /n/4154.7144.201718337 : /w/4154.7144.19396189.14.1
+END

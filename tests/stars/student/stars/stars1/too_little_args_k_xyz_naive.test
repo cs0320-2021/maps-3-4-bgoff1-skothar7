@@ -1,0 +1,7 @@
+INPUT
+stars data/stars/stardata.csv
+naive_neighbors 5 -10 3.3
+OUTPUT
+Read 119617 stars from data/stars/stardata.csv
+ERROR:
+END

@@ -1,0 +1,5 @@
+INPUT
+stars file_does_not_exist.csv
+OUTPUT
+ERROR:
+END

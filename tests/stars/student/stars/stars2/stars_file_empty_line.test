@@ -1,0 +1,5 @@
+INPUT
+stars stars-empty-lines-in-middle.csv
+OUTPUT
+ERROR:
+END
