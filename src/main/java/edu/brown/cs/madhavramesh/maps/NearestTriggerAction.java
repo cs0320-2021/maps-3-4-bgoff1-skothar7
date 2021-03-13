@@ -106,16 +106,16 @@ public class NearestTriggerAction implements TriggerAction {
         closestLeft = closestNode(lat, lon, closest, nodes.getLeft().get(), index + 1);
       }
     } else {
-      if (Double.compare(currentNode.getCoordinate(index), mock.getCoordinate(index)) < 0) {
+      //if (Double.compare(currentNode.getCoordinate(index), mock.getCoordinate(index)) < 0) {
         if (nodes.getRight().isPresent()) {
           closestRight = closestNode(lat, lon, closest, nodes.getRight().get(), index + 1);
         }
-      } else {
+      }// else {
         if (nodes.getLeft().isPresent()) {
           closestLeft = closestNode(lat, lon, closest, nodes.getLeft().get(), index + 1);
         }
-      }
-    }
+      //}
+    //}
     possibleClosest = new ArrayList<>(Collections.singletonList(currentNode));
     if (closestLeft != null) {
       possibleClosest.add(closestLeft);

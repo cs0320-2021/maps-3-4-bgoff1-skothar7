@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.List;
 
+import com.google.gson.Gson;
 import edu.brown.cs.madhavramesh.maps.MapTriggerAction;
 import edu.brown.cs.madhavramesh.maps.NearestTriggerAction;
 import edu.brown.cs.madhavramesh.maps.RouteTriggerAction;
@@ -22,9 +23,12 @@ import spark.ModelAndView;
 import spark.QueryParamsMap;
 import spark.Request;
 import spark.Response;
+import spark.Route;
 import spark.Spark;
 import spark.TemplateViewRoute;
 import spark.template.freemarker.FreeMarkerEngine;
+import org.json.JSONObject;
+import org.json.JSONArray;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -36,6 +40,7 @@ import freemarker.template.Configuration;
 public final class Main {
 
   private static final int DEFAULT_PORT = 4567;
+  private static final Gson GSON = new Gson();
 
   private static final List<TriggerAction> ACTIONS = Arrays.asList(
       new StarsTriggerAction(),
@@ -98,12 +103,30 @@ public final class Main {
     Spark.externalStaticFileLocation("src/main/resources/static");
     Spark.exception(Exception.class, new ExceptionPrinter());
 
+    Spark.options("/*", (request, response) -> {
+      String accessControlRequestHeaders = request.headers("Access-Control-Request-Headers");
+      if (accessControlRequestHeaders != null) {
+        response.header("Access-Control-Allow-Headers", accessControlRequestHeaders);
+      }
+
+      String accessControlRequestMethod = request.headers("Access-Control-Request-Method");
+
+      if (accessControlRequestMethod != null) {
+        response.header("Access-Control-Allow-Methods", accessControlRequestMethod);
+      }
+
+      return "OK";
+    });
+
+    Spark.before((request, response) -> response.header("Access-Control-Allow-Origin", "*"));
+
     FreeMarkerEngine freeMarker = createEngine();
 
     // Setup Spark Routes
     Spark.get("/stars", new FrontHandler(), freeMarker);
     Spark.post("/input", new InputHandler(), freeMarker);
     Spark.post("/results", new SubmitHandler(), freeMarker);
+    Spark.post("/route", new RouteHandler());
   }
 
   /**
@@ -169,6 +192,43 @@ public final class Main {
           "starResults", results);
 
       return new ModelAndView(variables, "results.ftl");
+    }
+  }
+
+  /**
+   * Handles requests made for a route.
+   */
+
+  private static class RouteHandler implements Route {
+    @Override
+    public Object handle(Request request, Response response) throws Exception {
+
+      JSONObject data = new JSONObject(request.body());
+      double sLat = data.getDouble("srclat");
+      double sLon = data.getDouble("srclong");
+      double dLat = data.getDouble("destlat");
+      double dLon = data.getDouble("destlong");
+
+      String[] src = {Double.toString(sLat), Double.toString(sLon)};
+      String[] dest = {Double.toString(dLat), Double.toString(dLon)};
+      String[] rand1 = {Double.toString(Math.random()*100), Double.toString(Math.random()*100)};
+      String[] rand2 = {Double.toString(Math.random()*100), Double.toString(Math.random()*100)};
+      List<String[]> coordinates = new ArrayList<>();
+
+      TriggerActionExecutor getResults = new TriggerActionExecutor(ACTIONS);
+      String results =
+          getResults.executeTriggerAction("ways",
+              new String[] {Double.toString(sLat), Double.toString(sLon), Double.toString(dLat),Double.toString(dLon)},
+              false);
+      String[] resultsArray = {results.replace("\n", "<br/>")};
+      coordinates.add(src);
+      coordinates.add(dest);
+      coordinates.add(rand1);
+      coordinates.add(resultsArray);
+
+      Map<String, Object> variables = ImmutableMap.of("route", coordinates);
+      return GSON.toJson(variables);
+
     }
   }
 

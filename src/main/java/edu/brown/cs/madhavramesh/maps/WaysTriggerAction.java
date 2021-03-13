@@ -64,7 +64,6 @@ public class WaysTriggerAction implements TriggerAction {
         System.err.println("ERROR: Point 1 was not northwest of Point 2");
       }
       return result.toString();
-
     } catch (NumberFormatException e) {
       System.err.println("ERROR: Arguments provided after ways were not doubles");
     } catch (NullPointerException e) {
@@ -84,14 +83,20 @@ public class WaysTriggerAction implements TriggerAction {
     Statement stat = conn.createStatement();
     stat.executeUpdate("PRAGMA foreign_keys=ON;");
     PreparedStatement prep = conn.prepareStatement(
-            "SELECT DISTINCT way.id FROM way JOIN node "
-                    + "WHERE (way.start = node.id OR way.end = node.id) "
-                + "AND ((node.latitude >= ?) AND (node.longitude <= ?)"
-                    + "AND (node.latitude <= ?) AND (node.longitude >= ?));");
+            "SELECT * FROM way INNER JOIN node as src on way.start = src.id"
+        + "INNER JOIN node as dest on way.end = dest.id "
+                + "WHERE (((src.latitude >= ?) AND (src.longitude <= ?)"
+                    + "AND (src.latitude <= ?) AND (src.longitude >= ?)) OR"
+        + "((dest.latitude >= ?) AND (dest.longitude <= ?)"
+        + "AND (dest.latitude <= ?) AND (dest.longitude >= ?)));");
     prep.setDouble(1, lat1);
     prep.setDouble(2, lon1);
     prep.setDouble(3, lat2);
     prep.setDouble(4, lon2);
+    prep.setDouble(5, lat1);
+    prep.setDouble(6, lon1);
+    prep.setDouble(7, lat2);
+    prep.setDouble(8, lon2);
     ResultSet rs = prep.executeQuery();
     ArrayList<String> ways = new ArrayList<>();
     while (rs.next()) {
