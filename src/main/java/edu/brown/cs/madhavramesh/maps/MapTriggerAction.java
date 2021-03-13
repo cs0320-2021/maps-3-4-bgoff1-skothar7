@@ -1,5 +1,6 @@
 package edu.brown.cs.madhavramesh.maps;
 
+import edu.brown.cs.madhavramesh.graph.DirectedGraph;
 import edu.brown.cs.madhavramesh.kdtree.KDTree;
 import edu.brown.cs.madhavramesh.stars.TriggerAction;
 
@@ -10,12 +11,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /** Executes map command and loads database as kd-tree. */
 public class MapTriggerAction implements TriggerAction {
 
-  private List<LocationNode> nodes = new ArrayList<>();
+  private List<MapNode> nodes = new ArrayList<>();
   private List<Way> ways = new ArrayList<>();
   private final int argsCount = 1;
 
@@ -60,16 +62,23 @@ public class MapTriggerAction implements TriggerAction {
                       + "WHERE (way.start = node.id OR way.end = node.id) AND way.type !='' "
                       + "AND way.type !='unclassified';");
       ResultSet rs = prep.executeQuery();
-      LocationNode currentNode;
+      MapNode currentNode;
       nodes.clear();
+      DirectedGraph dg = new DirectedGraph();
+
+      HashMap<String, MapNode> idToNodeMap = new HashMap();
       while (rs.next()) {
         String iD = rs.getString(1);
         Double lat = rs.getDouble(2);
         Double lon = rs.getDouble(3);
-        currentNode = new LocationNode(iD, lat, lon);
+        currentNode = new MapNode(iD, lat, lon);
         nodes.add(currentNode);
+        dg.addVertex(currentNode);
+        idToNodeMap.put(currentNode.getStringID(), currentNode);
       }
-      Maps.setNodesTree(new KDTree<>(nodes));
+      Maps.setNodesTree(new KDTree<MapNode>(nodes));
+      Maps.setIdToNodeMap(idToNodeMap);
+      Maps.setDg(dg);
       if (nodes.size() < 1) {
         System.out.println(Maps.getNodesTree().toString());
       }
@@ -82,6 +91,7 @@ public class MapTriggerAction implements TriggerAction {
     } catch (ClassNotFoundException e) {
       System.err.println("ERROR: Problem with SQL setup or commands");
     } catch (Exception e) {
+      e.printStackTrace();
       System.err.println("ERROR: Could not run map command");
     } finally {
       return result.toString();
