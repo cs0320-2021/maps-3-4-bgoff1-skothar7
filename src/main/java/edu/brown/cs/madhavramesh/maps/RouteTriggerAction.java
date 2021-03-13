@@ -1,19 +1,32 @@
 package edu.brown.cs.madhavramesh.maps;
 
-import edu.brown.cs.madhavramesh.graph.GraphAlgorithms;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import edu.brown.cs.madhavramesh.graph.Dijkstra;
+import edu.brown.cs.madhavramesh.graph.DirectedGraph;
 import edu.brown.cs.madhavramesh.kdtree.KDTree;
 import edu.brown.cs.madhavramesh.stars.TriggerAction;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Stack;
 
 /** Calculates shortest route from one node to another in a map. */
 public class RouteTriggerAction implements TriggerAction {
   private final int argsCount = 4;
+  private String ultimateEndID;
+  private static LoadingCache<String, Set<Way>> cache;
 
   /**
    * Command user types to execute this action.
@@ -40,35 +53,47 @@ public class RouteTriggerAction implements TriggerAction {
    */
   @Override
   public String execute(String[] args, boolean isREPL) {
-    StringBuilder result = new StringBuilder();
+    String result = "";
+    CacheLoader<String, Set<Way>> loader;
+    loader = new CacheLoader<String, Set<Way>>() {
+      @Override
+      public Set<Way> load(String nodeID) {
+        return queryWays(nodeID);
+      }
+    };
+
+    this.cache = CacheBuilder.newBuilder().build(loader);
     try {
-      LocationNode[] startAndEnd = checkArgsAreIntsOrStrings(args);
-      LocationNode start = startAndEnd[0];
-      LocationNode end = startAndEnd[1];
+      MapNode[] startAndEnd = checkArgsAreIntsOrStrings(args);
+      MapNode start = startAndEnd[0];
+      MapNode end = startAndEnd[1];
 
-      GraphAlgorithms<LocationNode, Way> ga = new GraphAlgorithms<>();
-      Stack<Way> shortestPath = ga.aStar(start, end, new HaversineHeuristic());
+      result = callDijkstra(start, end);
 
-      if (shortestPath.isEmpty()) {
-        result.append(start.getiD() + " -/- " + end.getiD() + "\n");
-      }
-
-      while (!shortestPath.isEmpty()) {
-        Way curEdge = shortestPath.pop();
-        result.append(curEdge.from().getiD() + " -> " + curEdge.to().getiD() + " : "
-            + curEdge.getiD() + "\n");
-      }
+//      GraphAlgorithms<MapNode, Way> ga = new GraphAlgorithms<>();
+//      Stack<Way> shortestPath = ga.aStar(start, end, new HaversineHeuristic());
+//
+//      if (shortestPath.isEmpty()) {
+//        result.append(start.getStringID() + " -/- " + end.getStringID() + "\n");
+//      }
+//
+//      while (!shortestPath.isEmpty()) {
+//        Way curEdge = shortestPath.pop();
+//        result.append(curEdge.from().getiD() + " -> " + curEdge.to().getiD() + " : "
+//            + curEdge.getiD() + "\n");
+//      }
 
     } catch (NumberFormatException e) {
       System.err.println("ERROR: Arguments provided after route were not decimals or strings");
     } catch (NullPointerException e) {
+      e.printStackTrace();
       System.err.println("ERROR: Map data from database must be loaded first");
     } catch (IllegalArgumentException e) {
       System.err.println(e.getMessage());
     } catch (Exception e) {
       System.err.println("ERROR: Could not run routes command");
     } finally {
-      return result.toString();
+      return result;
     }
   }
 
@@ -77,13 +102,13 @@ public class RouteTriggerAction implements TriggerAction {
    *
    * @param args Arguments given by user indicating latitudes and longitudes to use.
    *             Can be either doubles or strings
-   * @return Array of LocationNode where first element in array is the start node and
+   * @return Array of MapNode where first element in array is the start node and
    * second element is the ending node
    * @throws SQLException             Error executing query on database
    * @throws IllegalArgumentException Strings are given as arguments and no node ids in database
    *                                  correspond to the given Strings
    */
-  public LocationNode[] checkArgsAreIntsOrStrings(String[] args)
+  public MapNode[] checkArgsAreIntsOrStrings(String[] args)
       throws SQLException, IllegalArgumentException {
     try {
       double lat1d = Double.parseDouble(args[0]);
@@ -91,12 +116,12 @@ public class RouteTriggerAction implements TriggerAction {
       double lat2d = Double.parseDouble(args[2]);
       double long2d = Double.parseDouble(args[3]);
 
-      KDTree<LocationNode> currentNodes = Maps.getNodesTree();
+      KDTree<MapNode> currentNodes = Maps.getNodesTree();
 
-      LocationNode start = NearestTriggerAction.closestNode(lat1d, long1d, currentNodes);
-      LocationNode end = NearestTriggerAction.closestNode(lat2d, long2d, currentNodes);
+      MapNode start = NearestTriggerAction.closestNode(lat1d, long1d, currentNodes);
+      MapNode end = NearestTriggerAction.closestNode(lat2d, long2d, currentNodes);
 
-      return new LocationNode[]{start, end};
+      return new MapNode[]{start, end};
     } catch (NumberFormatException e) {
       String street1 = args[0].replaceAll("\"", "");
       String crossStreet1 = args[1].replaceAll("\"", "");
@@ -154,10 +179,10 @@ public class RouteTriggerAction implements TriggerAction {
 
       if (id1s != null && lat1s != null && long1s != null
           && id2s != null && lat2s != null && long2s != null) {
-        LocationNode start = new LocationNode(id1s, lat1s, long1s);
-        LocationNode end = new LocationNode(id2s, lat2s, long2s);
+        MapNode start = new MapNode(id1s, lat1s, long1s);
+        MapNode end = new MapNode(id2s, lat2s, long2s);
 
-        LocationNode[] startAndEnd = new LocationNode[]{start, end};
+        MapNode[] startAndEnd = new MapNode[]{start, end};
 
         return startAndEnd;
       } else {
@@ -174,5 +199,68 @@ public class RouteTriggerAction implements TriggerAction {
   @Override
   public int[] getNumParameters() {
     return new int[]{argsCount};
+  }
+
+  public String callDijkstra(MapNode start, MapNode end) {
+
+    ultimateEndID = end.getStringID();
+
+    Dijkstra dijkstra = new Dijkstra(Maps.getDg(), start, end);
+
+    // Start capturing
+    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(buffer));
+
+// Run what is supposed to output something
+    dijkstra.findShortestPath();
+
+// Stop capturing
+    System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+
+// Use captured content
+    String content = buffer.toString();
+    return content;
+    //buffer.reset();
+
+
+  }
+
+  /**
+   * Method that queries way data and coordinates given a node.
+   *
+   * @param nodeID
+   */
+  private Set<Way> queryWays(String nodeID) {
+    //conn = MapLoader.getConn();
+    Connection conn = Maps.getConnection();
+
+    PreparedStatement prep = null;
+    try {
+
+      prep = conn.prepareStatement(
+          "SELECT way.id, way.name, node.id, node.latitude, node.longitude FROM way JOIN node "
+              + "WHERE way.type != '' AND way.type!= 'unclassified' AND way.start = " + "\"" + nodeID
+              + "\"" + " AND node.id = way.end");
+
+      ResultSet rs = prep.executeQuery();
+
+      while (rs.next()) {
+        //coords = new ArrayList<>();
+        String wayID = rs.getString(1); // way ID
+        String name = rs.getString(2);  // name
+        String endNodeId = rs.getString(3);  // end node ID
+
+        Maps.getDg().addEdge(wayID, Maps.getIdToNodeMap().get(nodeID), Maps.getIdToNodeMap().get(endNodeId),
+            Maps.getIdToNodeMap().get(ultimateEndID));
+      }
+      return Maps.getIdToNodeMap().get(nodeID).getWays();
+
+    } catch (SQLException throwables) {
+      return new HashSet<Way>();
+    }
+  }
+
+  public static LoadingCache<String, Set<Way>> getCache() {
+    return RouteTriggerAction.cache;
   }
 }

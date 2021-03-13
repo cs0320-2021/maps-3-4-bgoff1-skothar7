@@ -2,6 +2,7 @@ package edu.brown.cs.madhavramesh.maps;
 
 import edu.brown.cs.madhavramesh.kdtree.KDTree;
 import edu.brown.cs.madhavramesh.stars.TriggerAction;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,10 +56,10 @@ public class NearestTriggerAction implements TriggerAction {
       double lat = Double.parseDouble(args[0].trim());
       double lon = Double.parseDouble(args[1].trim());
 
-      KDTree<LocationNode> currentNodes = Maps.getNodesTree();
-      LocationNode targetNode = closestNode(lat, lon, currentNodes);
+      KDTree<MapNode> currentNodes = Maps.getNodesTree();
+      MapNode targetNode = closestNode(lat, lon, currentNodes);
 
-      result.append(targetNode.getiD() + "\n");
+      result.append(targetNode.getStringID() + "\n");
       return result.toString();
     } catch (NumberFormatException e) {
       System.err.println("ERROR: Arguments provided after ways were not doubles");
@@ -73,22 +74,22 @@ public class NearestTriggerAction implements TriggerAction {
     }
   }
 
-  public static LocationNode closestNode(double lat, double lon, KDTree<LocationNode> nodes) {
+  public static MapNode closestNode(double lat, double lon, KDTree<MapNode> nodes) {
     if (nodes.getNode().isEmpty()) {
       throw new NullPointerException();
     }
     return closestNode(lat, lon, nodes.getNode().get(), nodes, 0);
   }
 
-  private static LocationNode closestNode(double lat, double lon, LocationNode c,
-                                          KDTree<LocationNode> nodes, int d) {
-    LocationNode mock = new LocationNode("", lat, lon);
+  private static MapNode closestNode(double lat, double lon, MapNode c,
+                                     KDTree<MapNode> nodes, int d) {
+    MapNode mock = new MapNode("", lat, lon);
     int index = d % 2;
-    LocationNode currentNode = nodes.getNode().get();
-    LocationNode closest = c;
-    LocationNode closestLeft = null;
-    LocationNode closestRight = null;
-    List<LocationNode> possibleClosest;
+    MapNode currentNode = nodes.getNode().get();
+    MapNode closest = c;
+    MapNode closestLeft = null;
+    MapNode closestRight = null;
+    List<MapNode> possibleClosest;
     double shortestDistance;
     if (Double.compare(mock.dist(closest), mock.dist(currentNode)) == 0) {
       //https://stackoverflow.com/questions/40311442/how-to-randomly-select-one-from-two-integers
@@ -116,6 +117,7 @@ public class NearestTriggerAction implements TriggerAction {
         }
       }
     }
+
     possibleClosest = new ArrayList<>(Collections.singletonList(currentNode));
     if (closestLeft != null) {
       possibleClosest.add(closestLeft);
@@ -128,9 +130,11 @@ public class NearestTriggerAction implements TriggerAction {
     for (int i = possibleClosest.size() - 1; i >= 0; i--) {
       if (possibleClosest.get(i).dist(mock) != shortestDistance) {
         possibleClosest.remove(i);
+     } else {
+        System.out.println(i + ": "+ possibleClosest.get(i).getStringID());
       }
     }
-    Collections.shuffle(possibleClosest);
+   Collections.shuffle(possibleClosest);
     return possibleClosest.get(0);
   }
 }

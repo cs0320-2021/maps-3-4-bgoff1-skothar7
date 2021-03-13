@@ -1,6 +1,6 @@
 package edu.brown.cs.madhavramesh.kdtree;
 
-import edu.brown.cs.madhavramesh.maps.LocationNode;
+import edu.brown.cs.madhavramesh.maps.MapNode;
 import edu.brown.cs.madhavramesh.points.HasCoordinates;
 import java.util.Comparator;
 import java.util.List;
@@ -249,13 +249,13 @@ public class KDTree<T extends HasCoordinates> {
     if (this.getNode().isEmpty()) {
       return nodeOutput;
     }
-    nodeOutput = ((LocationNode) this.getNode().get()).getiD();
+    nodeOutput = ((MapNode) this.getNode().get()).getStringID();
     if (this.getLeft().isPresent()) {
-      leftOutput = ((LocationNode) this.getLeft().get().getNode().get()).getiD();
+      leftOutput = ((MapNode) this.getLeft().get().getNode().get()).getStringID();
       leftTree = this.getLeft().get().toString();
     }
     if (this.getRight().isPresent()) {
-      rightOutput = ((LocationNode) this.getRight().get().getNode().get()).getiD();
+      rightOutput = ((MapNode) this.getRight().get().getNode().get()).getStringID();
       rightTree = this.getRight().get().toString();
     }
     String treeOutput = "node: " + nodeOutput + " left: " + leftOutput + " right: " + rightOutput;

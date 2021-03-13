@@ -24,14 +24,21 @@ public class NearestTriggerActionTest {
   @Test
   public void executionTest() {
     m.execute(new String[] {"data/maps/smallMaps.sqlite3"}, true);
-    String output = n.execute(new String[] {"41.8201", "-71.4004"}, true);
+    String output;
+    output = n.execute(new String[] {"41.8201", "-71.4004"}, true);
+    System.out.println("nearestTest l28: "+output);
     assertTrue(output.equals("/n/3\n"));
+
+    output = n.execute(new String[] {"41.8203", "-71.40033"}, true);
+    System.out.println("nearestTest l32: "+output);
+    assertTrue(output.equals("/n/4\n"));
   }
 
   @Test
   public void farAwayTest() {
     m.execute(new String[] {"data/maps/smallMaps.sqlite3"}, true);
     String output = n.execute(new String[] {"0", "0"}, true);
+    System.out.println(output);
     assertTrue(output.equals("/n/0\n"));
   }
 
@@ -39,6 +46,7 @@ public class NearestTriggerActionTest {
   public void equalDistanceTest() {
     m.execute(new String[] {"data/maps/smallMaps.sqlite3"}, true);
     String output = n.execute(new String[] {"41.82015", "-71.4"}, true);
+    System.out.println(output);
     assertTrue(output.equals("/n/0\n") || output.equals("/n/1\n"));
   }
 
