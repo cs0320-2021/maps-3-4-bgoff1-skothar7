@@ -1,16 +1,19 @@
 import logo from './logo.svg';
 import './App.css';
 import TextBox from './TextBox'
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import { AwesomeButton } from "react-awesome-button";
 import "react-awesome-button/dist/styles.css";
 import axios from "axios";
+import Canvas from "./Canvas";
 
 function Route() {
   const [startLat, setStartLat] = useState(0);
   const [startLon, setStartLon] = useState(0);
   const [endLat, setEndLat] = useState(0);
   const [endLon, setEndLon] = useState(0);
+
+  const [startCanvas, refreshCanvas] = useState("");
   //TODO: Fill in the ? with appropriate names/values for a route.
   //Hint: The defaults for latitudes and longitudes were 0s. What might the default useState value for a route be?
     const [route, setRoute] = useState([]);
@@ -69,6 +72,10 @@ function Route() {
         <p>{route[1]}</p>
         <p>{route[2]}</p>
         <p>{route[3]}</p>
+
+        <Canvas routeToRender={route[3]} onChange = {refreshCanvas} />
+
+
     </div>
   );
 }

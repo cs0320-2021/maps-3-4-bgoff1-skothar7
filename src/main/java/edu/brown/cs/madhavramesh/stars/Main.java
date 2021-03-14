@@ -185,7 +185,7 @@ public final class Main {
       TriggerActionExecutor getResults = new TriggerActionExecutor(ACTIONS);
       String results =
           getResults.executeTriggerAction(InputHandler.getCommand(), argsArray, false);
-      results = results.replace("\n", "<br/>");
+      results = results.replace("\n", ";");
 
       Map<String, String> variables = ImmutableMap.of(
           "title", "Stars: Results from the database",
