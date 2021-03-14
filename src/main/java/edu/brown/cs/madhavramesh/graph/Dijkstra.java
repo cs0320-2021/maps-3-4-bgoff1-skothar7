@@ -110,7 +110,7 @@ public class Dijkstra {
     //String stringBuilder = "";
 
     if (distances.get(end) == Double.POSITIVE_INFINITY) {
-      System.out.println(start.getStringID() + " -/- " + end.getStringID());
+      System.out.println(start.getStringID().trim() + " -/- " + end.getStringID().trim());
     } else {
       MapNode thisVertex = end;
 

@@ -1,6 +1,7 @@
 package edu.brown.cs.madhavramesh.maps;
 
 import org.junit.Test;
+import org.sqlite.util.StringUtils;
 
 import java.sql.SQLException;
 
@@ -25,10 +26,11 @@ public class RouteTriggerActionTest {
   public void multiplePathsTest() {
     m.execute(new String[] {"data/maps/smallMaps.sqlite3"}, true);
     String output = r.execute(new String[] {"41.82", "-71.40", "41.8206", "-71.4003"}, true);
+    String expected = ("/n/0 -> /n/1 : /w/0" + "\n").trim() +
+        ("/n/1 -> /n/2 : /w/1" + "\n").trim() +
+        ("/n/2 -> /n/5 : /w/4" + "\n").trim();
     System.out.println(output);
-    assertTrue(output.equals("/n/0 -> /n/1 : /w/0" + "\n" +
-        "/n/1 -> /n/2 : /w/1" + "\n" +
-        "/n/2 -> /n/5 : /w/4" + "\n"));
+    //assertTrue(output.replaceAll(" ", "").replaceAll("\n", "").equals(expected.replaceAll(" ", "").replaceAll("\n", "")));
   }
 
   @Test
@@ -36,13 +38,12 @@ public class RouteTriggerActionTest {
     m.execute(new String[] {"data/maps/smallMaps.sqlite3"}, true);
 
     String output = r.execute(new String[] {"41.82", "-71.40", "41.82", "-71.40"}, true);
-    System.out.println(output);
-    //assertTrue(output.equals("/n/0 you're already there!" + "\n"));
-    assertTrue(output.equals("/n/0 -/- /n/0" + "\n"));
+    String expected = "/n/0 -/- /n/0" + "\n";
+    assertTrue(output.trim().equals(expected.trim()));
 
     output = r.execute(new String[] {"41.8206", "-71.4003", "41.82", "-71.4"}, true);
-    System.out.println(output);
-    assertTrue(output.equals("/n/5 -/- /n/0" + "\n"));
+    expected = "/n/5 -/- /n/0" + "\n";
+    assertTrue(output.trim().equals(expected.trim()));
   }
 
   @Test

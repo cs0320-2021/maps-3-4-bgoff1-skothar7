@@ -56,9 +56,16 @@ public class WaysTriggerAction implements TriggerAction {
       double lat2 = Double.parseDouble(args[2].trim());
       double lon2 = Double.parseDouble(args[3].trim());
       if (lat1 >= lat2 && lon1 <= lon2) {
-        List<String> targetIDs = waysWithinBoundSQL(lat1, lon1, lat2, lon2);
-        for (String i : targetIDs) {
-          result.append(i).append("\n");
+        if (isREPL) {
+          List<String> targetIDs = waysWithinBoundSQLREPL(lat1, lon1, lat2, lon2);
+          for (String i : targetIDs) {
+            result.append(i).append("\n");
+          }
+        } else {
+          List<String> targetIDs = waysWithinBoundSQLGUI(lat1, lon1, lat2, lon2);
+          for (String i : targetIDs) {
+            result.append(i).append("\n");
+          }
         }
       } else {
         System.err.println("ERROR: Point 1 was not northwest of Point 2");
@@ -71,21 +78,23 @@ public class WaysTriggerAction implements TriggerAction {
     } catch (IllegalArgumentException e) {
       System.err.println(e.getMessage());
     } catch (Exception e) {
+      e.printStackTrace();
       System.err.println("ERROR: Could not run ways command");
     } finally {
       return result.toString();
     }
   }
 
-  public ArrayList<String> waysWithinBoundSQL(Double lat2, Double lon2, Double lat1, Double lon1)
+  public List<String> waysWithinBoundSQLGUI(Double lat2, Double lon2, Double lat1, Double lon1)
           throws SQLException {
     Connection conn = Maps.getConnection();
     Statement stat = conn.createStatement();
     stat.executeUpdate("PRAGMA foreign_keys=ON;");
     PreparedStatement prep = conn.prepareStatement(
-            "SELECT * FROM way INNER JOIN node as src on way.start = src.id"
-        + "INNER JOIN node as dest on way.end = dest.id "
-                + "WHERE (((src.latitude >= ?) AND (src.longitude <= ?)"
+            "SELECT way.type, src.latitude, src.longitude, dest.latitude, dest.longitude "
+        + "FROM way JOIN node as src "
+        + "JOIN node as dest WHERE way.end = dest.id "
+                + "AND way.start = src.id AND (((src.latitude >= ?) AND (src.longitude <= ?)"
                     + "AND (src.latitude <= ?) AND (src.longitude >= ?)) OR"
         + "((dest.latitude >= ?) AND (dest.longitude <= ?)"
         + "AND (dest.latitude <= ?) AND (dest.longitude >= ?)));");
@@ -98,7 +107,37 @@ public class WaysTriggerAction implements TriggerAction {
     prep.setDouble(7, lat2);
     prep.setDouble(8, lon2);
     ResultSet rs = prep.executeQuery();
-    ArrayList<String> ways = new ArrayList<>();
+    List<String> ways = new ArrayList<>();
+    StringBuilder current;
+    while (rs.next()) {
+      current = new StringBuilder();
+      current.append(rs.getString(1)).append(",");
+      current.append(rs.getString(2)).append(",");
+      current.append(rs.getString(3)).append(",");
+      current.append(rs.getString(4)).append(",");
+      current.append(rs.getString(5));
+      ways.add(current.toString());
+    }
+
+    return ways;
+  }
+
+  public List<String> waysWithinBoundSQLREPL(Double lat2, Double lon2, Double lat1, Double lon1)
+      throws SQLException {
+    Connection conn = Maps.getConnection();
+    Statement stat = conn.createStatement();
+    stat.executeUpdate("PRAGMA foreign_keys=ON;");
+    PreparedStatement prep = conn.prepareStatement(
+        "SELECT DISTINCT way.id FROM way JOIN node "
+            + "WHERE (way.start = node.id OR way.end = node.id) "
+            + "AND ((node.latitude >= ?) AND (node.longitude <= ?)"
+            + "AND (node.latitude <= ?) AND (node.longitude >= ?));");
+    prep.setDouble(1, lat1);
+    prep.setDouble(2, lon1);
+    prep.setDouble(3, lat2);
+    prep.setDouble(4, lon2);
+    ResultSet rs = prep.executeQuery();
+    List<String> ways = new ArrayList<>();
     while (rs.next()) {
       ways.add(rs.getString(1));
     }

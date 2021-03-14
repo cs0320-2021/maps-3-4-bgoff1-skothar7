@@ -13,7 +13,7 @@ private MapTriggerAction m = new MapTriggerAction();
   @Test
   public void allWaysTest() throws SQLException {
     m.execute(new String[] {"data/maps/smallMaps.sqlite3"}, true);
-    List<String> output = w.waysWithinBoundSQL(42.0, -72.0, 41.8, -71.3);
+    List<String> output = w.waysWithinBoundSQLREPL(42.0, -72.0, 41.8, -71.3);
     assertTrue(output.size() == 7);
     assertTrue(output.contains("/w/0"));
     assertTrue(output.contains("/w/1"));
@@ -27,14 +27,14 @@ private MapTriggerAction m = new MapTriggerAction();
   @Test
   public void noWaysTest() throws SQLException {
     m.execute(new String[] {"data/maps/smallMaps.sqlite3"}, true);
-    List<String> output = w.waysWithinBoundSQL(60.0, -85.0, 50.0, -80.0);
+    List<String> output = w.waysWithinBoundSQLREPL(60.0, -85.0, 50.0, -80.0);
     assertTrue(output.size() == 0);
   }
 
   @Test
   public void pointWaysBoxTest() throws SQLException {
     m.execute(new String[] {"data/maps/smallMaps.sqlite3"}, true);
-    List<String> output = w.waysWithinBoundSQL(41.82, -71.4, 41.82, -71.4);
+    List<String> output = w.waysWithinBoundSQLREPL(41.82, -71.4, 41.82, -71.4);
     assertTrue(output.size() == 2);
     assertTrue(output.contains("/w/0"));
     assertTrue(output.contains("/w/2"));
@@ -43,7 +43,7 @@ private MapTriggerAction m = new MapTriggerAction();
   @Test
   public void smallWaysBoxTest() throws SQLException {
     m.execute(new String[] {"data/maps/smallMaps.sqlite3"}, true);
-    List<String> output = w.waysWithinBoundSQL(41.8201, -71.4004, 41.8199, -71.4002);
+    List<String> output = w.waysWithinBoundSQLREPL(41.8201, -71.4004, 41.8199, -71.4002);
     assertTrue(output.size() == 2);
     assertTrue(output.contains("/w/2"));
     assertTrue(output.contains("/w/5"));

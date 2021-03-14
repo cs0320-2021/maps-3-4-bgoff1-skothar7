@@ -208,8 +208,8 @@ public class RouteTriggerAction implements TriggerAction {
     Dijkstra dijkstra = new Dijkstra(Maps.getDg(), start, end);
 
     // Start capturing
-    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    System.setOut(new PrintStream(buffer));
+    java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+    System.setOut(new java.io.PrintStream(out));
 
 // Run what is supposed to output something
     dijkstra.findShortestPath();
@@ -218,7 +218,7 @@ public class RouteTriggerAction implements TriggerAction {
     System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
 
 // Use captured content
-    String content = buffer.toString();
+    String content = out.toString();
     return content;
     //buffer.reset();
 
