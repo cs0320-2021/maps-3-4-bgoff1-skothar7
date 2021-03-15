@@ -68,12 +68,9 @@ function Route() {
         <TextBox label={"End Longitude"} onChange = {setEndLon}/>
 
       <AwesomeButton type="primary" onPress={() => {requestRoute()}}>Button</AwesomeButton>
-        <p>{route[0]}</p>
-        <p>{route[1]}</p>
         <p>{route[2]}</p>
-        <p>{route[3]}</p>
 
-        <Canvas routeToRender={route[3]} onChange = {refreshCanvas} />
+        <Canvas routetorender={route[3]} onChange = {refreshCanvas} />
 
 
     </div>

@@ -185,7 +185,7 @@ public final class Main {
       TriggerActionExecutor getResults = new TriggerActionExecutor(ACTIONS);
       String results =
           getResults.executeTriggerAction(InputHandler.getCommand(), argsArray, false);
-      results = results.replace("\n", ";");
+      results = results.replace("\n", "<br/>");
 
       Map<String, String> variables = ImmutableMap.of(
           "title", "Stars: Results from the database",
@@ -209,22 +209,21 @@ public final class Main {
       double dLat = data.getDouble("destlat");
       double dLon = data.getDouble("destlong");
 
-      String[] src = {Double.toString(sLat), Double.toString(sLon)};
-      String[] dest = {Double.toString(dLat), Double.toString(dLon)};
-      String[] rand1 = {Double.toString(Math.random()*100), Double.toString(Math.random()*100)};
-      String[] rand2 = {Double.toString(Math.random()*100), Double.toString(Math.random()*100)};
-      List<String[]> coordinates = new ArrayList<>();
+      String src = Double.toString(sLon);
+      String dest = Double.toString(dLon);
+      String rand1 = Double.toString(Math.random()*100);
+      List<String> coordinates = new ArrayList<>();
 
       TriggerActionExecutor getResults = new TriggerActionExecutor(ACTIONS);
       String results =
           getResults.executeTriggerAction("ways",
               new String[] {Double.toString(sLat), Double.toString(sLon), Double.toString(dLat),Double.toString(dLon)},
-              false);
-      String[] resultsArray = {results.replace("\n", "<br/>")};
+              false).replace("\n", ";");
+      String resultsConcat = results.substring(0, results.length() - 1);
       coordinates.add(src);
       coordinates.add(dest);
       coordinates.add(rand1);
-      coordinates.add(resultsArray);
+      coordinates.add(resultsConcat);
 
       Map<String, Object> variables = ImmutableMap.of("route", coordinates);
       return GSON.toJson(variables);
