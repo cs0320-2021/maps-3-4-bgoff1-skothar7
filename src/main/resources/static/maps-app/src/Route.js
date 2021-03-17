@@ -13,10 +13,17 @@ function Route() {
   const [endLat, setEndLat] = useState(0);
   const [endLon, setEndLon] = useState(0);
 
+    const [zoomInFactor, setZoomInFactor] = useState(1);
+    //const [endLon, setZoomInFactor] = useState(0);
+
+
+
   const [startCanvas, refreshCanvas] = useState("");
   //TODO: Fill in the ? with appropriate names/values for a route.
   //Hint: The defaults for latitudes and longitudes were 0s. What might the default useState value for a route be?
     const [route, setRoute] = useState([]);
+
+    let toCanvas = [route[3], startLat, startLon, endLat, endLon];
 
   /**
    * Makes an axios request.
@@ -56,6 +63,44 @@ function Route() {
 
           });
   }
+
+  const zoomIn = () => {
+      setZoomInFactor(0.91);
+      setZoomCoords();
+  }
+
+  const zoomOut = () => {
+      setZoomInFactor(1.1);
+      setZoomCoords();
+  }
+
+  const setZoomCoords = () => {
+      console.log(zoomInFactor);
+
+      let latFromCenter = Math.abs(Math.abs((startLat - (startLat + endLat)/2)) * zoomInFactor);
+      let lonFromCenter = Math.abs(Math.abs((endLon -  (endLon + startLon)/2)) * zoomInFactor);
+
+      const oldStartLat = startLat;
+      const oldStartLon = startLon;
+      const oldEndLat = endLat;
+      const oldEndLon = endLon;
+
+      console.log(oldStartLat);
+      console.log(oldStartLon);
+      console.log(oldEndLat);
+      console.log(oldEndLon);
+
+      setStartLat((oldStartLat - (oldStartLat + oldEndLat)/2) * zoomInFactor + (oldStartLat+oldEndLat)/2);
+      console.log(startLat);
+      setEndLat((oldStartLat+oldEndLat)/2 - (oldStartLat - (oldStartLat + oldEndLat)/2) * zoomInFactor);
+      console.log(endLat);
+      setEndLon((oldEndLon -  (oldEndLon + oldStartLon)/2) * zoomInFactor + (oldEndLon+oldStartLon)/2);
+      console.log(endLon);
+      setStartLon((oldEndLon + oldStartLon)/2 - (oldEndLon -  (oldEndLon + oldStartLon)/2) * zoomInFactor);
+      console.log((oldEndLon));// + 3)/2);// - ((oldEndLon -  (oldEndLon + 3)/2) * 1));
+
+  }
+
   return (
     <div className="Route">
       <header className="Route-header">
@@ -67,10 +112,12 @@ function Route() {
         <TextBox label={"End Latitude"} onChange = {setEndLat}/>
         <TextBox label={"End Longitude"} onChange = {setEndLon}/>
 
-      <AwesomeButton type="primary" onPress={() => {requestRoute()}}>Button</AwesomeButton>
+      <AwesomeButton type="primary" onPress={() => {requestRoute()}}>Refresh</AwesomeButton>
+        <AwesomeButton type="primary" onPress={() => {zoomIn()}}>+</AwesomeButton>
+        <AwesomeButton type="primary" onPress={() => {zoomOut()}}>-</AwesomeButton>
         <p>{route[2]}</p>
 
-        <Canvas routetorender={route[3]} onChange = {refreshCanvas} />
+        <Canvas routetorender={toCanvas} onChange = {refreshCanvas} />
 
 
     </div>

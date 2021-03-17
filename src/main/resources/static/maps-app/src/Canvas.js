@@ -44,16 +44,28 @@ function Canvas(props) {
         canvas.style.height = `${height}px`;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.lineWidth = 1
-        pixToCoord = 8000;
+        pixToCoord = 50000;
 
-        curSouthEastLat = 41.823876;
-        curSouthEastLon = -71.395963;
+        //default
+        // curSouthEastLat = 41.823876;
+        // curSouthEastLon = -71.395963;
+        //
+        // curNorthWestLat = (curSouthEastLat - w/pixToCoord);
+        // curNorthWestLon = (curSouthEastLon - h/pixToCoord);
 
-        curNorthWestLat = (curSouthEastLat - w/pixToCoord);
-        curNorthWestLon = (curSouthEastLon - h/pixToCoord);
+        //with ways
+        curSouthEastLat = props.routetorender[3];
+        curSouthEastLon = props.routetorender[4];
+        curNorthWestLat = props.routetorender[1];
+        curNorthWestLon = props.routetorender[2];
+
+        console.log(curSouthEastLat);
+        console.log(curSouthEastLon);
+        console.log(curNorthWestLat);
+        console.log(curNorthWestLon);
 
 
-        let rawWaysData = props.routetorender
+        let rawWaysData = props.routetorender[0]
         let listOfWays = [];
         if (rawWaysData != null) {
             listOfWays = (rawWaysData + '').split(";");
@@ -65,6 +77,10 @@ function Canvas(props) {
         let startLon;
         let endLat;
         let endLon;
+
+        pixToCoord = ((curNorthWestLon - curSouthEastLon)/w);
+        h = (curNorthWestLat - curSouthEastLat)/pixToCoord;
+
         console.log("low" + listOfWays.length);
         for (let i=0; i<listOfWays.length; i++) {
             parsedWay =  listOfWays[i].split(",");
@@ -74,11 +90,13 @@ function Canvas(props) {
             endLat = parseFloat(parsedWay[3]);
             endLon = parseFloat(parsedWay[4]);
             if (i === 500) {
-                console.log(h*(startLon - curNorthWestLon)/(curSouthEastLon - curNorthWestLon))
+                console.log(w*(startLon - curNorthWestLon)/(curSouthEastLon - curNorthWestLon));
             }
             ctx.beginPath();
-            ctx.moveTo(w*(startLat - curNorthWestLat)/(curSouthEastLat - curNorthWestLat) - 300, h*(startLon - curNorthWestLon)/(curSouthEastLon - curNorthWestLon) - 300);
-            ctx.lineTo(w*(endLat - curNorthWestLat)/(curSouthEastLat - curNorthWestLat) - 300, h*(endLon - curNorthWestLon)/(curSouthEastLon - curNorthWestLon) - 300);
+            ctx.moveTo(w*(startLon - curNorthWestLon)/(curSouthEastLon - curNorthWestLon), 0 - h*(startLat - curNorthWestLat)/(curSouthEastLat - curNorthWestLat));
+            ctx.lineTo(w*(endLon - curNorthWestLon)/(curSouthEastLon - curNorthWestLon), 0 - h*(endLat - curNorthWestLat)/(curSouthEastLat - curNorthWestLat));
+             //ctx.moveTo(w*(startLon - curNorthWestLon)/(curSouthEastLon - curNorthWestLon), h-h*(startLat - curNorthWestLat)/(curSouthEastLat - curNorthWestLat));
+             //ctx.lineTo(w*(endLon - curNorthWestLon)/(curSouthEastLon - curNorthWestLon), h-h*(endLat - curNorthWestLat)/(curSouthEastLat - curNorthWestLat));
             ctx.strokeStyle = "red";
             if (type === "" || type === "unclassified") {
                 ctx.strokeStyle = "blue";
