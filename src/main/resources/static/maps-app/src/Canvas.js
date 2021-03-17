@@ -1,5 +1,6 @@
 import './App.css';
 import React, {useEffect, useRef} from "react";
+import {requestRoute} from "./Route"
 
 let curNorthWestLat;
 let curNorthWestLon;
@@ -32,7 +33,21 @@ function Canvas(props) {
     let w = 600;
     let h = 600;
     let ref = useRef();
+    const firstUpdate = useRef(true);
     useEffect(() => {
+        if (firstUpdate.current) {
+            curSouthEastLat = 41.822895
+            curSouthEastLon = -71.396608
+            curNorthWestLat = 41.828693
+            curNorthWestLon = -71.406524
+            firstUpdate.current = false
+            requestRoute()
+        } else {
+            curSouthEastLat = parseFloat(props.routetorender[3]);
+            curSouthEastLon = parseFloat(props.routetorender[4]);
+            curNorthWestLat = parseFloat(props.routetorender[1]);
+            curNorthWestLon = parseFloat(props.routetorender[2]);
+        }
         canvas = ref.current;
         ctx = canvas.getContext("2d");
         let ratio = getPixelRatio(ctx);
@@ -54,10 +69,6 @@ function Canvas(props) {
         // curNorthWestLon = (curSouthEastLon - h/pixToCoord);
 
         //with ways
-        curSouthEastLat = props.routetorender[3];
-        curSouthEastLon = props.routetorender[4];
-        curNorthWestLat = props.routetorender[1];
-        curNorthWestLon = props.routetorender[2];
 
         console.log(curSouthEastLat);
         console.log(curSouthEastLon);
@@ -114,6 +125,8 @@ function Canvas(props) {
                 style={{ width: w, height: h }}
                 routetorender={props.routetorender}
                 onChange={(e) => props.onChange(e.target.value)}
+                onMouseDown={(e) => props.onMouseDown([e.pageX, e.pageY])}
+                onMouseUp={(e) => props.onMouseUp([e.pageX, e.pageY])}
             />
 
         </div>

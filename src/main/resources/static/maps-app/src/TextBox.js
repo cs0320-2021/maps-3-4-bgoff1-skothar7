@@ -5,7 +5,7 @@ function TextBox(props) {
   return (
     <div className="TextBox">
       {props.label}
-      <input  type="text" label={props.label} onChange={(e) => props.onChange(e.target.value)}/>
+      <input  type="text" label={props.label} onChange={(e) => props.onChange(parseFloat(e.target.value))}/>
     </div>
   );
 }
