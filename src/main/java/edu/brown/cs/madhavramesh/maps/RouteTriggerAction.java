@@ -17,8 +17,10 @@ import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
@@ -68,7 +70,8 @@ public class RouteTriggerAction implements TriggerAction {
       MapNode start = startAndEnd[0];
       MapNode end = startAndEnd[1];
 
-      result = callDijkstra(start, end);
+      result = callDijkstra(start, end, isREPL);
+      assert result.length() > 1;
 
 //      GraphAlgorithms<MapNode, Way> ga = new GraphAlgorithms<>();
 //      Stack<Way> shortestPath = ga.aStar(start, end, new HaversineHeuristic());
@@ -201,7 +204,7 @@ public class RouteTriggerAction implements TriggerAction {
     return new int[]{argsCount};
   }
 
-  public String callDijkstra(MapNode start, MapNode end) {
+  public String callDijkstra(MapNode start, MapNode end, boolean isRepl) {
 
     ultimateEndID = end.getStringID();
 
@@ -212,14 +215,21 @@ public class RouteTriggerAction implements TriggerAction {
     System.setOut(new java.io.PrintStream(out));
 
 // Run what is supposed to output something
-    dijkstra.findShortestPath();
+    if (isRepl) {
+      dijkstra.findShortestPath();
+    } else {
+      dijkstra.findShortestPathGUI();
+    }
+
 
 // Stop capturing
     System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
 
 // Use captured content
     String content = out.toString();
+    assert content!= null;
     return content;
+
     //buffer.reset();
 
 
@@ -263,4 +273,5 @@ public class RouteTriggerAction implements TriggerAction {
   public static LoadingCache<String, Set<Way>> getCache() {
     return RouteTriggerAction.cache;
   }
+
 }

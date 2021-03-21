@@ -140,6 +140,48 @@ public class Dijkstra {
   }
 
   /**
+   * Produces the list of vertices comprising the shortest path from the
+   * source to the destination.
+   */
+  public void findShortestPathGUI() {
+
+    List<String> wayIdsToPrint = new ArrayList<>();
+
+    //String stringBuilder = "";
+
+    if (distances.get(end) == Double.POSITIVE_INFINITY) {
+      System.out.println();
+    } else {
+      MapNode thisVertex = end;
+
+      if (end.getStringID().equals(start.getStringID())) {
+        pathList.add(start);
+        System.out.println(end.getStringID() + " you're already there!");
+      } else {
+
+        while (thisVertex != null && !thisVertex.getStringID().equals(start.getStringID())) {
+          pathList.add(thisVertex);
+          wayIdsToPrint.add(targetIDtoWayID.get(thisVertex.getStringID()));
+          thisVertex = thisVertex.getParent();
+        }
+        pathList.add(start);
+        if (pathList.size() >= 2) {
+          wayIdsToPrint.add(targetIDtoWayID.get(pathList.get(pathList.size() - 2).getStringID()));
+        }
+      }
+    }
+
+    for (int i = pathList.size() - 1; i > 1; i--) {
+      System.out.println("path,"+pathList.get(i).getCoordinate(0)+","+pathList.get(i).getCoordinate(1) + ","
+          + pathList.get(i - 1).getCoordinate(0) + ","+ pathList.get(i - 1).getCoordinate(1));
+    }
+    System.out.println("path,"+pathList.get(1).getCoordinate(0)+","+pathList.get(1).getCoordinate(1) + ","
+        + pathList.get(0).getCoordinate(0) + ","+ pathList.get(0).getCoordinate(1));
+
+
+  }
+
+  /**
    * getter for start node.
    *
    * @return start node

@@ -97,13 +97,13 @@ function Route(props) {
     const [startCanvas, refreshCanvas] = useState("");
 //TODO: Fill in the ? with appropriate names/values for a route.
 //Hint: The defaults for latitudes and longitudes were 0s. What might the default useState value for a route be?
-    const [route, setRoute] = useState([]);
+    const [ways, setWays] = useState([]);
     //let toCanvas = [route[3], startLat, startLon, endLat, endLon];
 
     /**
      * Makes an axios request.
      */
-    const requestRoute = () => {
+    const requestWays = () => {
         console.log(9 + " " + startLon)
         const toSend = {
             //TODO: Pass in the values for the data. Follow the format the route expects!
@@ -123,7 +123,7 @@ function Route(props) {
         //Install and import this!
         //TODO: Fill in 1) location for request 2) your data 3) configuration
         axios.post(
-            "http://localhost:4567/route",
+            "http://localhost:4567/ways",
             toSend,
             config
         )
@@ -131,7 +131,7 @@ function Route(props) {
                 console.log(response.data);
                 //TODO: Go to the Main.java in the server from the stencil, and find what variable you should put here.
                 //Note: It is very important that you understand how this is set up and why it works!
-                setRoute(response.data["route"]);//console.log  the response.data["route"]
+                setWays(response.data["ways"]);//console.log  the response.data["route"]
             })
 
             .catch(function (error) {
@@ -144,7 +144,7 @@ function Route(props) {
         useEffect(() => {
             if (firstRender) {
                 setFirstRender(false)
-                requestRoute()
+                requestWays()
             }
             canvas = ref.current;
             //http://www.petecorey.com/blog/2019/08/19/animating-a-canvas-with-react-hooks/
@@ -166,12 +166,7 @@ function Route(props) {
             console.log(getStartLon());
 
 
-            let rawWaysData = route[3]
-            let listOfWays = [];
-            if (rawWaysData != null) {
-                listOfWays = (rawWaysData + '').split(";");
-            }
-
+            let listOfWays = ways
             let parsedWay;
             let type;
             let startLatWay;
@@ -187,6 +182,7 @@ function Route(props) {
                 startLonWay = parseFloat(parsedWay[2]);
                 endLatWay = parseFloat(parsedWay[3]);
                 endLonWay = parseFloat(parsedWay[4]);
+                console.log(startLatWay)
                 if (i === 500) {
                     console.log(w*(startLonWay - startLon)/(endLon - startLon));
                 }
@@ -210,17 +206,16 @@ function Route(props) {
         })
 
     const refreshButton = () => {
-        setStartLat(startLatBuffer)
-        setStartLon(startLonBuffer)
-        setEndLat(endLatBuffer)
-        setEndLon(endLonBuffer)
-        requestRoute()
+
+            console.log(ways.length)
+
+        requestWays()
         const toSend = {
             //TODO: Pass in the values for the data. Follow the format the route expects!
-            srclat : getStartLat(),
-            srclong : getStartLon(),
-            destlat : getEndLat(),
-            destlong : getEndLon()
+            srclat : startLatBuffer,
+            srclong : startLonBuffer,
+            destlat : endLatBuffer,
+            destlong : endLonBuffer
         };
 
         let config = {
@@ -233,7 +228,7 @@ function Route(props) {
         //Install and import this!
         //TODO: Fill in 1) location for request 2) your data 3) configuration
         axios.post(
-            "http://localhost:4567/path",
+            "http://localhost:4567/route",
             toSend,
             config
         )
@@ -241,12 +236,26 @@ function Route(props) {
                 console.log(response.data);
                 //TODO: Go to the Main.java in the server from the stencil, and find what variable you should put here.
                 //Note: It is very important that you understand how this is set up and why it works!
-                setRoute(route.concat(response.data["path"]));//console.log  the response.data["route"]
+                setWays(ways.concat(response.data["route"]));//console.log  the response.data["route"]
             })
 
             .catch(function (error) {
                 console.log(error);
             });
+
+        console.log(ways.length)
+
+        //to test
+        //41.825158
+        // -71.404687
+        //41.827525
+        //-71.400441
+
+
+
+
+
+
     }
 
     const clickedOnCanvas = (clicked) => {
@@ -266,7 +275,7 @@ function Route(props) {
                 setEndLat(getEndLat() - dY);
                 setEndLon(getEndLon() + dX);
                 setStartLon(getStartLon() + dX);
-                requestRoute();
+                requestWays();
         }
     }
 
@@ -303,7 +312,7 @@ function Route(props) {
           setEndLon(newEndLon);
           setStartLon(newStartLon);
       })
-      requestRoute();
+      requestWays();
   }
 
   return (
@@ -319,7 +328,7 @@ function Route(props) {
         <AwesomeButton type="primary" onPress={() => {refreshButton()}}>Refresh</AwesomeButton>
         <AwesomeButton type="primary" onPress={() => {zoomIn()}}>+</AwesomeButton>
         <AwesomeButton type="primary" onPress={() => {zoomOut()}}>-</AwesomeButton>
-        <p>{route[2]}</p>
+        <p>{ways[2]}</p>
         <div className="Canvas">
             <canvas
                 ref={ref}

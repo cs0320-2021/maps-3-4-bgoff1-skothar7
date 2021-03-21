@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.List;
 
@@ -126,6 +127,7 @@ public final class Main {
     Spark.get("/stars", new FrontHandler(), freeMarker);
     Spark.post("/input", new InputHandler(), freeMarker);
     Spark.post("/results", new SubmitHandler(), freeMarker);
+    Spark.post("/ways", new WaysHandler());
     Spark.post("/route", new RouteHandler());
   }
 
@@ -212,20 +214,42 @@ public final class Main {
       String src = Double.toString(sLon);
       String dest = Double.toString(dLon);
       String rand1 = Double.toString(Math.random()*100);
-      List<String> coordinates = new ArrayList<>();
+
 
       TriggerActionExecutor getResults = new TriggerActionExecutor(ACTIONS);
-      String results =
+      String[] results =
+          getResults.executeTriggerAction("route",
+              new String[] {Double.toString(sLat), Double.toString(sLon), Double.toString(dLat),Double.toString(dLon)},
+              false).split("\n");
+
+
+      Map<String, Object> variables = ImmutableMap.of("route", results);
+      return GSON.toJson(variables);
+
+    }
+  }
+
+  /**
+   * Handles requests made for Ways.
+   */
+  private static class WaysHandler implements Route {
+    @Override
+    public Object handle(Request request, Response response) throws Exception {
+
+      JSONObject data = new JSONObject(request.body());
+      double sLat = data.getDouble("srclat");
+      double sLon = data.getDouble("srclong");
+      double dLat = data.getDouble("destlat");
+      double dLon = data.getDouble("destlong");
+
+      TriggerActionExecutor getResults = new TriggerActionExecutor(ACTIONS);
+      String[] results =
           getResults.executeTriggerAction("ways",
               new String[] {Double.toString(sLat), Double.toString(sLon), Double.toString(dLat),Double.toString(dLon)},
-              false).replace("\n", ";");
-      String resultsConcat = results.substring(0, results.length() - 1);
-      coordinates.add(src);
-      coordinates.add(dest);
-      coordinates.add(rand1);
-      coordinates.add(resultsConcat);
+              false).split("\n");
 
-      Map<String, Object> variables = ImmutableMap.of("route", coordinates);
+
+      Map<String, Object> variables = ImmutableMap.of("ways", results);
       return GSON.toJson(variables);
 
     }

@@ -131,9 +131,9 @@ public class NearestTriggerAction implements TriggerAction {
     for (int i = possibleClosest.size() - 1; i >= 0; i--) {
       if (possibleClosest.get(i).dist(mock) != shortestDistance) {
         possibleClosest.remove(i);
-     } else {
-        System.out.println(i + ": "+ possibleClosest.get(i).getStringID());
-      }
+     } //else {
+        //System.out.println(i + ": "+ possibleClosest.get(i).getStringID());
+      //}
     }
    Collections.shuffle(possibleClosest);
     return possibleClosest.get(0);
