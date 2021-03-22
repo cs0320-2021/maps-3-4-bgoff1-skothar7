@@ -210,7 +210,7 @@ function Route(props) {
             canvas.height = height * ratio;
             canvas.style.width = `${width}px`;
             canvas.style.height = `${height}px`;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            //ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.lineWidth = 1
 
             console.log(getEndLat());
@@ -268,16 +268,16 @@ function Route(props) {
                     ctx.lineWidth = 5
                     ctx.stroke()
                     if (!startCircle) {
-                        //ctx.moveTo(startPixX, startPixY);
-                        //ctx.beginPath();
-                        //ctx.arc(startPixX, startPixY, 15, 0, 2 * Math.PI);
+                        ctx.moveTo(startPixX, startPixY);
+                        ctx.beginPath();
+                        ctx.arc(startPixX, startPixY, 15, 0, 2 * Math.PI);
                         //ctx.rect(startPixX - 21, startPixY - 21, 42, 42)
                         startCircle = true
                     } else {
                         if (i === toPrint.length - 1) {
-                            //ctx.moveTo(endPixX, endPixY);
-                            //ctx.beginPath();
-                            //ctx.arc(endPixX, endPixY, 15, 0, 2 * Math.PI);
+                            ctx.moveTo(endPixX, endPixY);
+                            ctx.beginPath();
+                            ctx.arc(endPixX, endPixY, 15, 0, 2 * Math.PI);
                             //ctx.rect(endPixX - 21, endPixY - 21, 42, 42)
                         }
                     }
@@ -375,7 +375,6 @@ function Route(props) {
                 console.log(getRouteStartLon())
                 console.log(getRouteEndLat())
                 console.log(getRouteEndLon())
-
                 refreshButton();
 
                 hasClicked = false;
