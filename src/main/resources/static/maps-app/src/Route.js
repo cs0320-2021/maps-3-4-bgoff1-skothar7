@@ -34,10 +34,14 @@ let endLat = 41.821395;
 let endLon = -71.396608;
 let clickCoordinate = [];
 let releaseCoordinate = [];
+let clickCoordinate2 = [];
+let releaseCoordinate2 = [];
 let routeStartLat;
 let routeStartLon;
 let routeEndLat;
 let routeEndLon;
+
+let hasClicked = false;
 
 function setStartLat(slat) {
     startLat = parseFloat(slat)
@@ -117,6 +121,22 @@ function setReleaseCoordinate(release) {
 
 function getReleaseCoordinate() {
     return releaseCoordinate
+}
+
+function setSecondReleaseCoordinate(release) {
+    releaseCoordinate2 = release
+}
+
+function getSecondReleaseCoordinate() {
+    return releaseCoordinate2
+}
+
+function setSecondClickCoordinate(click) {
+    clickCoordinate2 = click
+}
+
+function getSecondClickCoordinate() {
+    return clickCoordinate2
 }
 
 
@@ -245,7 +265,7 @@ function Route(props) {
                 if (type === "path") {
                     console.log("yes")
                     ctx.strokeStyle = "pink";
-                    ctx.lineWidth = 2
+                    ctx.lineWidth = 5
                     ctx.stroke()
                     if (!startCircle) {
                         //ctx.moveTo(startPixX, startPixY);
@@ -270,6 +290,7 @@ function Route(props) {
     const refreshButton = () => {
 
             console.log(ways.length)
+        console.log(hasClicked)
 
         requestWays()
         const toSend = {
@@ -300,7 +321,7 @@ function Route(props) {
                 //Note: It is very important that you understand how this is set up and why it works!
                 let currentRoute = response.data["route"]
                 setRoute(currentRoute);//console.log  the response.data["route"]
-                printCanvas(currentRoute.slice(0, 10))
+                printCanvas(currentRoute)//.slice(0, 10))
             })
 
             .catch(function (error) {
@@ -319,13 +340,49 @@ function Route(props) {
 
     }
 
+    //clickedOnCanvas setter sets pixels x,y
+    //release does the same
+
+
     const clickedOnCanvas = (clicked) => {
-        setClickCoordinate(clicked)
+
+
+            setClickCoordinate(clicked)
+
+
     }
 
     const releasedOnCanvas = (released) => {
         setReleaseCoordinate(released)
-        if(getClickCoordinate() === getReleaseCoordinate()) {
+        console.log(getClickCoordinate()[0])
+        console.log(getReleaseCoordinate()[0])
+        console.log(getClickCoordinate()[1])
+        console.log(getReleaseCoordinate()[1])
+        if(getClickCoordinate()[0] === getReleaseCoordinate()[0] &&
+            getClickCoordinate()[1] === getReleaseCoordinate()[1]) {
+
+            console.log("clicked and released")
+            if (hasClicked){
+
+                console.log("entered clicked condition")
+
+                //make post req
+                setRouteStartLon(getStartLon() + getSecondReleaseCoordinate()[0]*coordToPix)
+                setRouteStartLat(getStartLat() - getSecondReleaseCoordinate()[1]*coordToPix)
+                setRouteEndLon(getStartLon() + parseFloat(released[0])*coordToPix)
+                setRouteEndLat(getStartLat() - parseFloat(released[1])*coordToPix)
+                console.log(getRouteStartLat())
+                console.log(getRouteStartLon())
+                console.log(getRouteEndLat())
+                console.log(getRouteEndLon())
+
+                refreshButton();
+
+                hasClicked = false;
+            } else {
+                setSecondReleaseCoordinate(released)
+                hasClicked = true;
+            }
             //route start/end
         } else {
             //panning
@@ -337,6 +394,8 @@ function Route(props) {
                 setEndLon(getEndLon() + dX);
                 setStartLon(getStartLon() + dX);
                 requestWays();
+
+
         }
     }
 
