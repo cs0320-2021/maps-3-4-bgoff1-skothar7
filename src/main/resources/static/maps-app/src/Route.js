@@ -34,6 +34,10 @@ let endLat = 41.821395;
 let endLon = -71.396608;
 let clickCoordinate = [];
 let releaseCoordinate = [];
+let routeStartLat;
+let routeStartLon;
+let routeEndLat;
+let routeEndLon;
 
 function setStartLat(slat) {
     startLat = parseFloat(slat)
@@ -67,6 +71,38 @@ function getEndLon() {
     return parseFloat(endLon)
 }
 
+function setRouteStartLat(slat) {
+    routeStartLat = parseFloat(slat)
+}
+
+function getRouteStartLat() {
+    return parseFloat(routeStartLat)
+}
+
+function setRouteStartLon(slon) {
+    routeStartLon = parseFloat(slon)
+}
+
+function getRouteStartLon() {
+    return parseFloat(routeStartLon)
+}
+
+function setRouteEndLat(elat) {
+    routeEndLat = parseFloat(elat)
+}
+
+function getRouteEndLat() {
+    return parseFloat(routeEndLat)
+}
+
+function setRouteEndLon(elon) {
+    routeEndLon = parseFloat(elon)
+}
+
+function getRouteEndLon() {
+    return parseFloat(routeEndLon)
+}
+
 function setClickCoordinate(click) {
     clickCoordinate = click
 }
@@ -89,15 +125,12 @@ function Route(props) {
     const w = 600.0;
     const h = 600.0;
     let coordToPix = parseFloat((getStartLon() - getEndLon())/w);
-    const [startLatBuffer, setStartLatBuffer] = useState(0);
-    const [startLonBuffer, setStartLonBuffer] = useState(0);
-    const [endLatBuffer, setEndLatBuffer] = useState(0);
-    const [endLonBuffer, setEndLonBuffer] = useState(0);
     const [zoomInFactor, setZoomInFactor] = useState(1);
     const [startCanvas, refreshCanvas] = useState("");
 //TODO: Fill in the ? with appropriate names/values for a route.
 //Hint: The defaults for latitudes and longitudes were 0s. What might the default useState value for a route be?
     const [ways, setWays] = useState([]);
+    const [route, setRoute] = useState([]);
     //let toCanvas = [route[3], startLat, startLon, endLat, endLon];
 
     /**
@@ -161,50 +194,79 @@ function Route(props) {
             ctx.lineWidth = 1
 
             console.log(getEndLat());
-            console.log(getEndLat());
+            console.log(getEndLon());
             console.log(getStartLat());
             console.log(getStartLon());
 
+            printCanvas(ways)
+            printCanvas(route)
 
-            let listOfWays = ways
-            let parsedWay;
-            let type;
-            let startLatWay;
-            let startLonWay;
-            let endLatWay;
-            let endLonWay;
-
-            console.log("low" + listOfWays.length);
-            for (let i=0; i<listOfWays.length; i++) {
-                parsedWay =  listOfWays[i].split(",");
-                type = parsedWay[0]
-                startLatWay = parseFloat(parsedWay[1]);
-                startLonWay = parseFloat(parsedWay[2]);
-                endLatWay = parseFloat(parsedWay[3]);
-                endLonWay = parseFloat(parsedWay[4]);
-                console.log(startLatWay)
-                if (i === 500) {
-                    console.log(w*(startLonWay - startLon)/(endLon - startLon));
-                }
-                ctx.beginPath();
-                ctx.moveTo(w*(startLonWay - getStartLon())/(getEndLon() - getStartLon()), h*(startLatWay - getStartLat())/(getEndLat() - getStartLat()));
-                ctx.lineTo(w*(endLonWay - getStartLon())/(getEndLon() - getStartLon()), h*(endLatWay - getStartLat())/(getEndLat() - getStartLat()));
-                //ctx.moveTo(w*(startLon - startLon)/(endLon - startLon), h-h*(startLat - startLat)/(endLat - startLat));
-                //ctx.lineTo(w*(endLon - startLon)/(endLon - startLon), h-h*(endLat - startLat)/(endLat - startLat));
-                ctx.strokeStyle = "red";
-                if (type === "" || type === "unclassified") {
-                    ctx.strokeStyle = "blue";
-                } else {
-                    if (type === "path") {
-                        ctx.strokeStyle = "pink";
-                    }
-                }
-                ctx.stroke();
-            }
             console.log("done")
 
         })
 
+    const printCanvas = (toPrint) => {
+            console.log(toPrint.length)
+        let parsedWay;
+        let type;
+        let startLatWay;
+        let startLonWay;
+        let endLatWay;
+        let endLonWay;
+        let startCircle;
+        let startPixX;
+        let startPixY;
+        let endPixX;
+        let endPixY;
+
+        startCircle = false
+
+        console.log("low" + toPrint.length);
+        for (let i=0; i<toPrint.length; i++) {
+            parsedWay = toPrint[i].split(",");
+            type = parsedWay[0]
+            startLatWay = parseFloat(parsedWay[1]);
+            startLonWay = parseFloat(parsedWay[2]);
+            endLatWay = parseFloat(parsedWay[3]);
+            endLonWay = parseFloat(parsedWay[4]);
+            startPixX = w*(startLonWay - getStartLon())/(getEndLon() - getStartLon())
+            startPixY = h*(startLatWay - getStartLat())/(getEndLat() - getStartLat())
+            endPixX = w*(endLonWay - getStartLon())/(getEndLon() - getStartLon())
+            endPixY = h*(endLatWay - getStartLat())/(getEndLat() - getStartLat())
+            ctx.beginPath();
+            ctx.moveTo(startPixX, startPixY);
+            ctx.lineTo(endPixX, endPixY);
+            //ctx.moveTo(w*(startLon - startLon)/(endLon - startLon), h-h*(startLat - startLat)/(endLat - startLat));
+            //ctx.lineTo(w*(endLon - startLon)/(endLon - startLon), h-h*(endLat - startLat)/(endLat - startLat));
+            ctx.strokeStyle = "red";
+            if (type === "" || type === "unclassified") {
+                ctx.strokeStyle = "blue";
+            } else {
+                if (type === "path") {
+                    console.log("yes")
+                    ctx.strokeStyle = "pink";
+                    ctx.lineWidth = 2
+                    ctx.stroke()
+                    if (!startCircle) {
+                        //ctx.moveTo(startPixX, startPixY);
+                        //ctx.beginPath();
+                        //ctx.arc(startPixX, startPixY, 15, 0, 2 * Math.PI);
+                        //ctx.rect(startPixX - 21, startPixY - 21, 42, 42)
+                        startCircle = true
+                    } else {
+                        if (i === toPrint.length - 1) {
+                            //ctx.moveTo(endPixX, endPixY);
+                            //ctx.beginPath();
+                            //ctx.arc(endPixX, endPixY, 15, 0, 2 * Math.PI);
+                            //ctx.rect(endPixX - 21, endPixY - 21, 42, 42)
+                        }
+                    }
+                }
+            }
+            ctx.stroke();
+            ctx.lineWidth = 1
+        }
+    }
     const refreshButton = () => {
 
             console.log(ways.length)
@@ -212,10 +274,10 @@ function Route(props) {
         requestWays()
         const toSend = {
             //TODO: Pass in the values for the data. Follow the format the route expects!
-            srclat : startLatBuffer,
-            srclong : startLonBuffer,
-            destlat : endLatBuffer,
-            destlong : endLonBuffer
+            srclat : getRouteStartLat(),
+            srclong : getRouteStartLon(),
+            destlat : getRouteEndLat(),
+            destlong : getRouteEndLon()
         };
 
         let config = {
@@ -236,7 +298,9 @@ function Route(props) {
                 console.log(response.data);
                 //TODO: Go to the Main.java in the server from the stencil, and find what variable you should put here.
                 //Note: It is very important that you understand how this is set up and why it works!
-                setWays(ways.concat(response.data["route"]));//console.log  the response.data["route"]
+                let currentRoute = response.data["route"]
+                setRoute(currentRoute);//console.log  the response.data["route"]
+                printCanvas(currentRoute.slice(0, 10))
             })
 
             .catch(function (error) {
@@ -250,9 +314,6 @@ function Route(props) {
         // -71.404687
         //41.827525
         //-71.400441
-
-
-
 
 
 
@@ -321,11 +382,11 @@ function Route(props) {
         <title>This is a title</title>
       </header>
         <h1>{startLat}</h1>
-        <TextBox label={"Start Latitude"} onChange = {setStartLatBuffer}/>
-        <TextBox label={"Start Longitude"} onChange = {setStartLonBuffer}/>
-        <TextBox label={"End Latitude"} onChange = {setEndLatBuffer}/>
-        <TextBox label={"End Longitude"} onChange = {setEndLonBuffer}/>
-        <AwesomeButton type="primary" onPress={() => {refreshButton()}}>Refresh</AwesomeButton>
+        <TextBox label={"Start Latitude"} onChange = {setRouteStartLat}/>
+        <TextBox label={"Start Longitude"} onChange = {setRouteStartLon}/>
+        <TextBox label={"End Latitude"} onChange = {setRouteEndLat}/>
+        <TextBox label={"End Longitude"} onChange = {setRouteEndLon}/>
+        <AwesomeButton type="primary" onPress={() => {refreshButton()}}>Find Path</AwesomeButton>
         <AwesomeButton type="primary" onPress={() => {zoomIn()}}>+</AwesomeButton>
         <AwesomeButton type="primary" onPress={() => {zoomOut()}}>-</AwesomeButton>
         <p>{ways[2]}</p>
@@ -338,7 +399,7 @@ function Route(props) {
                 onMouseDown={(e) => clickedOnCanvas([e.pageX, e.pageY])}
                 onMouseUp={(e) => releasedOnCanvas([e.pageX, e.pageY])}
             />
-
+            hi
         </div>
     </div>
   );

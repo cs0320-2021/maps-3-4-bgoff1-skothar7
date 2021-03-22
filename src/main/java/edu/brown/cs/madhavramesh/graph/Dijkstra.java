@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.PriorityQueue;
 import edu.brown.cs.madhavramesh.maps.MapNode;
+import edu.brown.cs.madhavramesh.maps.Maps;
 import edu.brown.cs.madhavramesh.maps.RouteTriggerAction;
 import edu.brown.cs.madhavramesh.maps.Way;
 
@@ -37,6 +38,9 @@ public class Dijkstra {
     this.end = end;
     this.pathList = new ArrayList<>();
     this.distances = new HashMap<>();
+    if (distances == null) {
+      System.out.println("41 ");
+    }
     this.dg = dg;
     this.targetIDtoWayID = new HashMap<>();
 
@@ -64,7 +68,7 @@ public class Dijkstra {
       return;
     }
     MapNode currentVertex = pq.poll();
-    while (dg.getVerticesSet().size() > 0 && !pq.isEmpty()) {
+    while (/*dg.getVerticesSet().size() > 0 && */!pq.isEmpty()) {
       //---------CACHING----------------
       Set<Way> cachedWays = null;
       try {
@@ -73,8 +77,12 @@ public class Dijkstra {
 
         for (Way way : cachedWays) {
 
-
-
+          //System.out.println("76 "+way.getWeight());
+          //System.out.println("77 "+distances.get(currentVertex));
+          if (distances == null) {
+            System.out.println("78 ");
+          }
+          //System.out.println("79 "+distances.get(way.getTarget()));
           if (distances.get(way.getTarget()) > distances.get(currentVertex) + way.getWeight()) {
             distances.put(way.getTarget(), distances.get(currentVertex) + way.getWeight());
             way.getTarget().setParent(currentVertex);
@@ -85,12 +93,13 @@ public class Dijkstra {
         }
 
       } catch (Exception e) {
+        e.printStackTrace();
         System.out.println("Node has no ways");
         System.out.println(currentVertex.getStringID());
 
       }
 
-      dg.getVerticesSet().remove(currentVertex);
+      //dg.getVerticesSet().remove(currentVertex);
 
       currentVertex = pq.poll(); //update vertex
       assert currentVertex != null;
@@ -143,41 +152,33 @@ public class Dijkstra {
    * Produces the list of vertices comprising the shortest path from the
    * source to the destination.
    */
-  public void findShortestPathGUI() {
-
+  public synchronized String[] findShortestPathGUI() {
+    System.out.println("yes");
     List<String> wayIdsToPrint = new ArrayList<>();
 
     //String stringBuilder = "";
 
     if (distances.get(end) == Double.POSITIVE_INFINITY) {
-      System.out.println();
+      return new String[0];
     } else {
-      MapNode thisVertex = end;
 
       if (end.getStringID().equals(start.getStringID())) {
-        pathList.add(start);
-        System.out.println(end.getStringID() + " you're already there!");
+        return new String[0];
       } else {
-
+        MapNode thisVertex = end;
         while (thisVertex != null && !thisVertex.getStringID().equals(start.getStringID())) {
           pathList.add(thisVertex);
-          wayIdsToPrint.add(targetIDtoWayID.get(thisVertex.getStringID()));
           thisVertex = thisVertex.getParent();
         }
         pathList.add(start);
-        if (pathList.size() >= 2) {
-          wayIdsToPrint.add(targetIDtoWayID.get(pathList.get(pathList.size() - 2).getStringID()));
-        }
       }
     }
 
-    for (int i = pathList.size() - 1; i > 1; i--) {
-      System.out.println("path,"+pathList.get(i).getCoordinate(0)+","+pathList.get(i).getCoordinate(1) + ","
+    for (int i = pathList.size() - 1; i > 0; i--) {
+      wayIdsToPrint.add("path,"+pathList.get(i).getCoordinate(0)+","+pathList.get(i).getCoordinate(1) + ","
           + pathList.get(i - 1).getCoordinate(0) + ","+ pathList.get(i - 1).getCoordinate(1));
     }
-    System.out.println("path,"+pathList.get(1).getCoordinate(0)+","+pathList.get(1).getCoordinate(1) + ","
-        + pathList.get(0).getCoordinate(0) + ","+ pathList.get(0).getCoordinate(1));
-
+    return wayIdsToPrint.toArray(new String[wayIdsToPrint.size()]);
 
   }
 

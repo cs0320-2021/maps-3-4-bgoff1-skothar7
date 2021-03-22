@@ -41,6 +41,9 @@ public class MapNode implements HasCoordinates {
   }
 
 
+  public MapNode copy() {
+    return new MapNode(this.stringID, this.getCoordinate(0), this.getCoordinate(1));
+  }
 //  /**
 //   * getter method for coordinates.
 //   * @return list representing coordinates

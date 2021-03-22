@@ -211,16 +211,13 @@ public final class Main {
       double dLat = data.getDouble("destlat");
       double dLon = data.getDouble("destlong");
 
-      String src = Double.toString(sLon);
-      String dest = Double.toString(dLon);
-      String rand1 = Double.toString(Math.random()*100);
-
 
       TriggerActionExecutor getResults = new TriggerActionExecutor(ACTIONS);
       String[] results =
           getResults.executeTriggerAction("route",
               new String[] {Double.toString(sLat), Double.toString(sLon), Double.toString(dLat),Double.toString(dLon)},
-              false).split("\n");
+              false).split(";");
+      System.out.println("LENGTH: "+results.length);
 
 
       Map<String, Object> variables = ImmutableMap.of("route", results);

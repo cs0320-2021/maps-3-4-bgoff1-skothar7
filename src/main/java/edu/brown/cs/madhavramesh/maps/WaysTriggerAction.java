@@ -63,11 +63,11 @@ public class WaysTriggerAction implements TriggerAction {
           }
         } else {
           List<String> targetIDs = waysWithinBoundSQLGUI(lat1, lon1, lat2, lon2);
-          int i;
-          for (i = 0; i< targetIDs.size()-1; i++) {
-            result.append(targetIDs.get(i)).append("\n");
+          int i = 1;
+          result.append(targetIDs.get(0));
+          for (i = 1; i < targetIDs.size(); i++) {
+            result.append("\n").append(targetIDs.get(i));
           }
-          result.append(targetIDs.get(i+1));
         }
       } else {
         System.err.println("ERROR: Point 1 was not northwest of Point 2");

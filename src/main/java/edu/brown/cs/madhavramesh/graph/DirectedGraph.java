@@ -55,4 +55,8 @@ public class DirectedGraph {
   public void setVerticesSet(Set<MapNode> verticesSet) {
     this.verticesSet = verticesSet;
   }
+
+  public int size() {
+    return this.verticesSet.size();
+  }
 }

@@ -15,6 +15,8 @@ import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -61,6 +63,12 @@ public final class Maps {
   }
 
   public static DirectedGraph getDg() {
+    //DirectedGraph returnGraph = new DirectedGraph();
+    //Set<MapNode> returnSet = new HashSet<>();
+    //for (MapNode value : dg.getVerticesSet()) {
+    //  returnSet.add(value);
+    //}
+    //returnGraph.setVerticesSet(new HashSet<>(returnSet));
     return dg;
   }
 

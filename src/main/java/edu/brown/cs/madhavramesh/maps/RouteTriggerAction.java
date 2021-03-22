@@ -12,6 +12,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Array;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
@@ -71,7 +72,7 @@ public class RouteTriggerAction implements TriggerAction {
       MapNode end = startAndEnd[1];
 
       result = callDijkstra(start, end, isREPL);
-      assert result.length() > 1;
+      //assert result.length() > 1;
 
 //      GraphAlgorithms<MapNode, Way> ga = new GraphAlgorithms<>();
 //      Stack<Way> shortestPath = ga.aStar(start, end, new HaversineHeuristic());
@@ -94,6 +95,7 @@ public class RouteTriggerAction implements TriggerAction {
     } catch (IllegalArgumentException e) {
       System.err.println(e.getMessage());
     } catch (Exception e) {
+      e.printStackTrace();
       System.err.println("ERROR: Could not run routes command");
     } finally {
       return result;
@@ -123,7 +125,7 @@ public class RouteTriggerAction implements TriggerAction {
 
       MapNode start = NearestTriggerAction.closestNode(lat1d, long1d, currentNodes);
       MapNode end = NearestTriggerAction.closestNode(lat2d, long2d, currentNodes);
-
+      System.out.println("yo "+lat1d+" "+long1d+" "+lat2d+" "+long2d);
       return new MapNode[]{start, end};
     } catch (NumberFormatException e) {
       String street1 = args[0].replaceAll("\"", "");
@@ -208,29 +210,28 @@ public class RouteTriggerAction implements TriggerAction {
 
     ultimateEndID = end.getStringID();
 
+    System.out.println("dg size: "+Maps.getDg().size());
     Dijkstra dijkstra = new Dijkstra(Maps.getDg(), start, end);
 
-    // Start capturing
-    java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
-    System.setOut(new java.io.PrintStream(out));
 
 // Run what is supposed to output something
     if (isRepl) {
+      // Start capturing
+      java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+      System.setOut(new java.io.PrintStream(out));
       dijkstra.findShortestPath();
+      // Stop capturing
+      System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+      // Use captured content
+      String content = out.toString();
+      assert content!= null;
+      return content;
+      //buffer.reset();
     } else {
-      dijkstra.findShortestPathGUI();
+      System.out.println("routetriggeraction:231 " + String.join(";", dijkstra.findShortestPathGUI()));
+      return String.join(";", dijkstra.findShortestPathGUI());
     }
 
-
-// Stop capturing
-    System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
-
-// Use captured content
-    String content = out.toString();
-    assert content!= null;
-    return content;
-
-    //buffer.reset();
 
 
   }
