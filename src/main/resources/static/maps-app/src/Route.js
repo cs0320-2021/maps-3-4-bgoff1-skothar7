@@ -40,6 +40,7 @@ let routeStartLat;
 let routeStartLon;
 let routeEndLat;
 let routeEndLon;
+let route = [];
 
 let hasClicked = false;
 
@@ -131,12 +132,12 @@ function getSecondReleaseCoordinate() {
     return releaseCoordinate2
 }
 
-function setSecondClickCoordinate(click) {
-    clickCoordinate2 = click
+function setRoute(r) {
+    route = r
 }
 
-function getSecondClickCoordinate() {
-    return clickCoordinate2
+function getRoute() {
+    return route
 }
 
 
@@ -144,13 +145,13 @@ function getSecondClickCoordinate() {
 function Route(props) {
     const w = 600.0;
     const h = 600.0;
-    let coordToPix = parseFloat((getStartLon() - getEndLon())/w);
+    let coordToPix = Math.abs(parseFloat((getStartLon() - getEndLon())/w));
     const [zoomInFactor, setZoomInFactor] = useState(1);
     const [startCanvas, refreshCanvas] = useState("");
 //TODO: Fill in the ? with appropriate names/values for a route.
 //Hint: The defaults for latitudes and longitudes were 0s. What might the default useState value for a route be?
     const [ways, setWays] = useState([]);
-    const [route, setRoute] = useState([]);
+    //const [route, setRoute] = useState([]);
     //let toCanvas = [route[3], startLat, startLon, endLat, endLon];
 
     /**
@@ -210,7 +211,7 @@ function Route(props) {
             canvas.height = height * ratio;
             canvas.style.width = `${width}px`;
             canvas.style.height = `${height}px`;
-            //ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.lineWidth = 1
 
             console.log(getEndLat());
@@ -219,7 +220,7 @@ function Route(props) {
             console.log(getStartLon());
 
             printCanvas(ways)
-            printCanvas(route)
+            printCanvas(getRoute())
 
             console.log("done")
 
@@ -242,7 +243,9 @@ function Route(props) {
         startCircle = false
 
         console.log("low" + toPrint.length);
+
         for (let i=0; i<toPrint.length; i++) {
+
             parsedWay = toPrint[i].split(",");
             type = parsedWay[0]
             startLatWay = parseFloat(parsedWay[1]);
@@ -253,6 +256,9 @@ function Route(props) {
             startPixY = h*(startLatWay - getStartLat())/(getEndLat() - getStartLat())
             endPixX = w*(endLonWay - getStartLon())/(getEndLon() - getStartLon())
             endPixY = h*(endLatWay - getStartLat())/(getEndLat() - getStartLat())
+            if (i%10===0){
+                console.log(startPixX)
+            }
             ctx.beginPath();
             ctx.moveTo(startPixX, startPixY);
             ctx.lineTo(endPixX, endPixY);
@@ -286,13 +292,14 @@ function Route(props) {
             ctx.stroke();
             ctx.lineWidth = 1
         }
+        console.log(toPrint.length)
     }
     const refreshButton = () => {
 
             console.log(ways.length)
         console.log(hasClicked)
 
-        requestWays()
+        //requestWays()
         const toSend = {
             //TODO: Pass in the values for the data. Follow the format the route expects!
             srclat : getRouteStartLat(),
@@ -346,6 +353,8 @@ function Route(props) {
 
     const clickedOnCanvas = (clicked) => {
 
+            console.log(clicked)
+
 
             setClickCoordinate(clicked)
 
@@ -353,6 +362,7 @@ function Route(props) {
     }
 
     const releasedOnCanvas = (released) => {
+        console.log(released)
         setReleaseCoordinate(released)
         console.log(getClickCoordinate()[0])
         console.log(getReleaseCoordinate()[0])
@@ -367,10 +377,27 @@ function Route(props) {
                 console.log("entered clicked condition")
 
                 //make post req
-                setRouteStartLon(getStartLon() + getSecondReleaseCoordinate()[0]*coordToPix)
-                setRouteStartLat(getStartLat() - getSecondReleaseCoordinate()[1]*coordToPix)
-                setRouteEndLon(getStartLon() + parseFloat(released[0])*coordToPix)
-                setRouteEndLat(getStartLat() - parseFloat(released[1])*coordToPix)
+                //
+                // setRouteStartLon(getStartLon() + getSecondReleaseCoordinate()[0]*coordToPix)
+                // setRouteStartLat(getStartLat() + getSecondReleaseCoordinate()[1]*coordToPix)
+                // setRouteEndLon(getStartLon() + parseFloat(released[0])*coordToPix)
+                // setRouteEndLat(getStartLat() + parseFloat(released[1])*coordToPix)
+                // setRouteStartLon(getStartLon() + getSecondReleaseCoordinate()[0]*coordToPix)
+                // setRouteStartLat(getStartLat() - Math.abs(getSecondReleaseCoordinate()[1]*coordToPix))
+                // setRouteEndLon(getStartLon() + parseFloat(released[0])*coordToPix)
+                // setRouteEndLat(getStartLat() - Math.abs(parseFloat(released[1])*coordToPix))
+
+
+                setRouteStartLon(getSecondReleaseCoordinate()[0]*(getEndLon() - getStartLon())/w +  getStartLon())
+                setRouteStartLat(getSecondReleaseCoordinate()[1]*(getEndLat() - getStartLat())/h +  getStartLat())
+                setRouteEndLon(released[0]*(getEndLon() - getStartLon())/w +  getStartLon())
+                setRouteEndLat(released[1]*(getEndLat() - getStartLat())/h +  getStartLat())
+
+               console.log(w*(getRouteStartLon() - getStartLon())/(getEndLon() - getStartLon()))
+                console.log(h*(getRouteStartLat() - getStartLat())/(getEndLat() - getStartLat()))
+                console.log(w*(getRouteEndLon() - getStartLon())/(getEndLon() - getStartLon()))
+                console.log(h*(getRouteEndLat() - getStartLat())/(getEndLat() - getStartLat()))
+
                 console.log(getRouteStartLat())
                 console.log(getRouteStartLon())
                 console.log(getRouteEndLat())
@@ -393,6 +420,7 @@ function Route(props) {
                 setEndLon(getEndLon() + dX);
                 setStartLon(getStartLon() + dX);
                 requestWays();
+                printCanvas(getRoute())
 
 
         }
@@ -410,9 +438,6 @@ function Route(props) {
 
   const setZoomCoords = () => {
       console.log(zoomInFactor);
-
-      let latFromCenter = Math.abs(Math.abs((getStartLat() - (getStartLat() + getEndLat())/2)) * zoomInFactor);
-      let lonFromCenter = Math.abs(Math.abs((getEndLon() -  (getEndLon() + getStartLon())/2)) * zoomInFactor);
 
       const avgLat = ((getStartLat() + getEndLat())/2)
       const avgLon = ((getStartLon() + getEndLon())/2)
@@ -448,17 +473,16 @@ function Route(props) {
         <AwesomeButton type="primary" onPress={() => {zoomIn()}}>+</AwesomeButton>
         <AwesomeButton type="primary" onPress={() => {zoomOut()}}>-</AwesomeButton>
         <p>{ways[2]}</p>
-        <div className="Canvas">
             <canvas
                 ref={ref}
                 style={{ width: w, height: h }}
                 routetorender={props.routetorender}
                 onChange={(e) => props.onChange(e.target.value)}
-                onMouseDown={(e) => clickedOnCanvas([e.pageX, e.pageY])}
-                onMouseUp={(e) => releasedOnCanvas([e.pageX, e.pageY])}
+                onMouseDown={(e) => clickedOnCanvas([e.pageX - canvas.offsetLeft, e.pageY - canvas.offsetTop])}
+                onMouseUp={(e) => releasedOnCanvas([e.pageX - canvas.offsetLeft, e.pageY - canvas.offsetTop])}
+
             />
             hi
-        </div>
     </div>
   );
 }
