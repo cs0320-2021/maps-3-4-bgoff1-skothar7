@@ -159,10 +159,12 @@ public class Dijkstra {
     //String stringBuilder = "";
 
     if (distances.get(end) == Double.POSITIVE_INFINITY) {
+      System.out.println("End is unreachable.");
       return new String[0];
     } else {
 
       if (end.getStringID().equals(start.getStringID())) {
+        System.out.println("Start node same as end node");
         return new String[0];
       } else {
         MapNode thisVertex = end;
