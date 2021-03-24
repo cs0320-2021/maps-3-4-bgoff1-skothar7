@@ -4,6 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -12,6 +17,7 @@ import java.util.List;
 
 import com.google.gson.Gson;
 import edu.brown.cs.madhavramesh.maps.MapTriggerAction;
+import edu.brown.cs.madhavramesh.maps.Maps;
 import edu.brown.cs.madhavramesh.maps.NearestTriggerAction;
 import edu.brown.cs.madhavramesh.maps.RouteTriggerAction;
 import edu.brown.cs.madhavramesh.maps.WaysTriggerAction;
@@ -42,7 +48,7 @@ public final class Main {
 
   private static final int DEFAULT_PORT = 4567;
   private static final Gson GSON = new Gson();
-
+  private static double mostRecentTime = 0;
   private static final List<TriggerAction> ACTIONS = Arrays.asList(
       new StarsTriggerAction(),
       new NaiveNeighborsTriggerAction(),
@@ -129,6 +135,8 @@ public final class Main {
     Spark.post("/results", new SubmitHandler(), freeMarker);
     Spark.post("/ways", new WaysHandler());
     Spark.post("/route", new RouteHandler());
+    Spark.post("/checkin", new CheckinHandler());
+    Spark.post("/user", new UserHandler());
   }
 
   /**
@@ -206,21 +214,21 @@ public final class Main {
     public Object handle(Request request, Response response) throws Exception {
 
       JSONObject data = new JSONObject(request.body());
-      double sLat = data.getDouble("srclat");
-      double sLon = data.getDouble("srclong");
-      double dLat = data.getDouble("destlat");
-      double dLon = data.getDouble("destlong");
+      String sLat = data.getString("srclat");
+      String sLon = data.getString("srclong");
+      String dLat = data.getString("destlat");
+      String dLon = data.getString("destlong");
 
 
       TriggerActionExecutor getResults = new TriggerActionExecutor(ACTIONS);
       String[] results =
           getResults.executeTriggerAction("route",
-              new String[] {Double.toString(sLat), Double.toString(sLon), Double.toString(dLat),Double.toString(dLon)},
+              new String[] {sLat, sLon, dLat, dLon},
               false).split(";");
       System.out.println("LENGTH: "+results.length);
 
 
-      Map<String, Object> variables = ImmutableMap.of("route", results);
+      Map<String, Object> variables = ImmutableMap.of("route", Arrays.copyOfRange(results, 0, results.length/2));
       return GSON.toJson(variables);
 
     }
@@ -247,6 +255,78 @@ public final class Main {
 
 
       Map<String, Object> variables = ImmutableMap.of("ways", results);
+      return GSON.toJson(variables);
+
+    }
+  }
+
+  /**
+   * Handles requests made for Checkins.
+   */
+  private static class CheckinHandler implements Route {
+    @Override
+    public Object handle(Request request, Response response) throws Exception {
+
+      Connection conn = Maps.getConnection();
+      Statement stat = conn.createStatement();
+      stat.executeUpdate("PRAGMA foreign_keys=ON;");
+      PreparedStatement prep = conn.prepareStatement(
+          "SELECT * FROM map_checkin WHERE (map_checkin.ts >= ?) ORDER BY map_checkin.ts ASC;");
+      prep.setDouble(1, mostRecentTime);
+      List<String> results = new ArrayList<>();
+      ResultSet rs = prep.executeQuery();
+      String id;
+      String name;
+      String ts = Double.toString(mostRecentTime);
+      String lat;
+      String lon;
+      while (rs.next()) {
+        id = Integer.toString(rs.getInt(1));
+        name = rs.getString(2);
+        ts = Double.toString(rs.getDouble(3));
+        lat = Double.toString(rs.getDouble(4));
+        lon = Double.toString(rs.getDouble(5));
+        results.add(id+","+name+","+ts+","+lat+","+lon);
+      }
+      mostRecentTime = Double.parseDouble(ts);
+      Map<String, Object> variables = ImmutableMap.of("checkins", results);
+      return GSON.toJson(variables);
+
+    }
+  }
+
+  /**
+   * Handles requests made for User Data.
+   */
+  private static class UserHandler implements Route {
+    @Override
+    public Object handle(Request request, Response response) throws Exception {
+
+      JSONObject data = new JSONObject(request.body());
+      int targetID = data.getInt("id");
+
+      Connection conn = Maps.getConnection();
+      Statement stat = conn.createStatement();
+      stat.executeUpdate("PRAGMA foreign_keys=ON;");
+      PreparedStatement prep = conn.prepareStatement(
+          "SELECT * FROM map_checkin WHERE (? = map_checkin.id);");
+      prep.setInt(1, targetID);
+      List<String> results = new ArrayList<>();
+      ResultSet rs = prep.executeQuery();
+      String id;
+      String name;
+      String ts;
+      String lat;
+      String lon;
+      while (rs.next()) {
+        id = Integer.toString(rs.getInt(1));
+        name = rs.getString(2);
+        ts = Double.toString(rs.getDouble(3));
+        lat = Double.toString(rs.getDouble(4));
+        lon = Double.toString(rs.getDouble(5));
+        results.add(id+","+name+","+ts+","+lat+","+lon);
+      }
+      Map<String, Object> variables = ImmutableMap.of("user", results);
       return GSON.toJson(variables);
 
     }

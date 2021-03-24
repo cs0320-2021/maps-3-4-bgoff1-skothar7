@@ -1,10 +1,17 @@
 package edu.brown.cs.madhavramesh.checkins;
 
+import edu.brown.cs.madhavramesh.maps.Maps;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +52,21 @@ public final class CheckinThread extends Thread {
         }
 
         if (updates != null && !updates.isEmpty()) {
+          Connection conn = Maps.getConnection();
+          PreparedStatement prep;
+          try {
+            prep = conn.prepareStatement("CREATE TABLE IF NOT EXISTS map_checkin("
+                + "id INTEGER,"
+                + "name TEXT,"
+                + "ts DOUBLE,"
+                + "lat DOUBLE,"
+                + "lon DOUBLE,"
+                + "PRIMARY KEY (id),"
+                + "ON DELETE CASCADE ON UPDATE CASCADE);");
+            prep.executeUpdate();
+          } catch (SQLException e) {
+            e.printStackTrace();
+          }
           for (List<String> el : updates) {
             double timestamp = Double.parseDouble(el.get(0));
             int id = Integer.parseInt(el.get(1));
@@ -55,9 +77,17 @@ public final class CheckinThread extends Thread {
             // put in concurrent hashmap
             UserCheckin uc = new UserCheckin(id, name, timestamp, lat, lon);
             checkins.put(timestamp, uc);
+            try {
+              prep = conn.prepareStatement("INSERT INTO"+"\"map_checkin\""+" VALUES ("+id+","+ name+","+timestamp+","+lat+","+lon+")");
+            } catch (SQLException e) {
+              e.printStackTrace();
+            }
 
-            // TODO: write to database
-
+          }
+          try {
+            conn.close();
+          } catch (SQLException e) {
+            e.printStackTrace();
           }
         }
         lastSec = sec;

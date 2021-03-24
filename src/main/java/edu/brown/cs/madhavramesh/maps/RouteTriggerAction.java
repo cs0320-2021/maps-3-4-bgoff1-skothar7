@@ -129,9 +129,12 @@ public class RouteTriggerAction implements TriggerAction {
       return new MapNode[]{start, end};
     } catch (NumberFormatException e) {
       String street1 = args[0].replaceAll("\"", "");
+      System.out.println(street1);
       String crossStreet1 = args[1].replaceAll("\"", "");
+      System.out.println(crossStreet1);
       String street2 = args[2].replaceAll("\"", "");
       String crossStreet2 = args[3].replaceAll("\"", "");
+      KDTree<MapNode> currentNodes = Maps.getNodesTree();
 
       Connection conn = Maps.getConnection();
       Statement stat = conn.createStatement();
@@ -150,17 +153,20 @@ public class RouteTriggerAction implements TriggerAction {
       prep.setString(2, crossStreet1);
       prep.setString(3, street1);
       prep.setString(4, crossStreet1);
+
       ResultSet rs1 = prep.executeQuery();
 
       String id1s = null;
       Double lat1s = null;
       Double long1s = null;
-      while (rs1.next()) {
+      MapNode start = null;
+      if (rs1.next()) {
         id1s = rs1.getString(1);
         lat1s = rs1.getDouble(2);
         long1s = rs1.getDouble(3);
+        start = NearestTriggerAction.closestNode(lat1s, long1s, currentNodes);
       }
-
+      System.out.println(id1s);
       rs1.close();
 
       prep.setString(1, street2);
@@ -172,24 +178,22 @@ public class RouteTriggerAction implements TriggerAction {
       String id2s = null;
       Double lat2s = null;
       Double long2s = null;
-      while (rs2.next()) {
+      MapNode end = null;
+      if (rs2.next()) {
         id2s = rs2.getString(1);
         lat2s = rs2.getDouble(2);
         long2s = rs2.getDouble(3);
+        end = NearestTriggerAction.closestNode(lat2s, long2s, currentNodes);
       }
+
+      System.out.println(id2s);
 
       rs2.close();
       prep.close();
       stat.close();
 
-      if (id1s != null && lat1s != null && long1s != null
-          && id2s != null && lat2s != null && long2s != null) {
-        MapNode start = new MapNode(id1s, lat1s, long1s);
-        MapNode end = new MapNode(id2s, lat2s, long2s);
-
-        MapNode[] startAndEnd = new MapNode[]{start, end};
-
-        return startAndEnd;
+      if (!(start == null) && !(end == null)) {
+        return new MapNode[]{start, end};
       } else {
         throw new IllegalArgumentException("ERROR: No nodes exist at intersections of streets");
       }

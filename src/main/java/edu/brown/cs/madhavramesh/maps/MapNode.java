@@ -18,7 +18,6 @@ import java.util.Set;
 public class MapNode implements HasCoordinates {
 
   private String stringID;
-  private String type;
   private List<Double> coords;
   private Set<Way> ways;
   private MapNode parent;
@@ -32,7 +31,6 @@ public class MapNode implements HasCoordinates {
    */
   public MapNode(String id, double lat, double lon) {
     this.stringID = id;
-    this.type = type;
     this.coords = new ArrayList<Double>();
     this.coords.add(lat);
     this.coords.add(lon);
@@ -95,22 +93,6 @@ public class MapNode implements HasCoordinates {
 
   public void setWays(Set<Way> ways) {
     this.ways = ways;
-  }
-
-  /**
-   * getter method for type.
-   * @return string representing type of way
-   */
-  public String getType() {
-    return type;
-  }
-
-  /**
-   * setter method for type.
-   * @param type representing the type of way
-   */
-  public void setType(String type) {
-    this.type = type;
   }
 
   public void setCoords(List<Double> coords) {

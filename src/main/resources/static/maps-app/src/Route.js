@@ -36,10 +36,10 @@ let clickCoordinate = [];
 let releaseCoordinate = [];
 let clickCoordinate2 = [];
 let releaseCoordinate2 = [];
-let routeStartLat;
-let routeStartLon;
-let routeEndLat;
-let routeEndLon;
+let routeStartLat = "";
+let routeStartLon = "";
+let routeEndLat = "";
+let routeEndLon = "";
 let route = [];
 
 let hasClicked = false;
@@ -77,35 +77,36 @@ function getEndLon() {
 }
 
 function setRouteStartLat(slat) {
-    routeStartLat = parseFloat(slat)
+    routeStartLat = slat
 }
 
 function getRouteStartLat() {
-    return parseFloat(routeStartLat)
+    return routeStartLat
 }
 
 function setRouteStartLon(slon) {
-    routeStartLon = parseFloat(slon)
+    console.log("88 "+slon)
+    routeStartLon = slon
 }
 
 function getRouteStartLon() {
-    return parseFloat(routeStartLon)
+    return routeStartLon
 }
 
 function setRouteEndLat(elat) {
-    routeEndLat = parseFloat(elat)
+    routeEndLat = elat
 }
 
 function getRouteEndLat() {
-    return parseFloat(routeEndLat)
+    return routeEndLat
 }
 
 function setRouteEndLon(elon) {
-    routeEndLon = parseFloat(elon)
+    routeEndLon = elon
 }
 
 function getRouteEndLon() {
-    return parseFloat(routeEndLon)
+    return routeEndLon
 }
 
 function setClickCoordinate(click) {
@@ -219,6 +220,8 @@ function Route(props) {
             console.log(getStartLat());
             console.log(getStartLon());
 
+            ctx.fillStyle = "#e8d8c3";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             printCanvas(ways)
             printCanvas(getRoute())
 
@@ -295,7 +298,14 @@ function Route(props) {
         console.log(toPrint.length)
     }
     const refreshButton = () => {
-
+        ctx.fillStyle = "#e8d8c3";
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        printCanvas(ways)
+        console.log(getRouteStartLat())
+        console.log(getRouteStartLon())
+        console.log(getRouteEndLat())
+        console.log(getRouteEndLon())
             console.log(ways.length)
         console.log(hasClicked)
 
@@ -328,7 +338,7 @@ function Route(props) {
                 //Note: It is very important that you understand how this is set up and why it works!
                 let currentRoute = response.data["route"]
                 setRoute(currentRoute);//console.log  the response.data["route"]
-                printCanvas(currentRoute)//.slice(0, 10))
+                printCanvas(currentRoute)
             })
 
             .catch(function (error) {
@@ -393,10 +403,10 @@ function Route(props) {
                 setRouteEndLon(released[0]*(getEndLon() - getStartLon())/w +  getStartLon())
                 setRouteEndLat(released[1]*(getEndLat() - getStartLat())/h +  getStartLat())
 
-               console.log(w*(getRouteStartLon() - getStartLon())/(getEndLon() - getStartLon()))
-                console.log(h*(getRouteStartLat() - getStartLat())/(getEndLat() - getStartLat()))
-                console.log(w*(getRouteEndLon() - getStartLon())/(getEndLon() - getStartLon()))
-                console.log(h*(getRouteEndLat() - getStartLat())/(getEndLat() - getStartLat()))
+               //console.log(w*(getRouteStartLon() - getStartLon())/(getEndLon() - getStartLon()))
+               // console.log(h*(getRouteStartLat() - getStartLat())/(getEndLat() - getStartLat()))
+                //console.log(w*(getRouteEndLon() - getStartLon())/(getEndLon() - getStartLon()))
+                //console.log(h*(getRouteEndLat() - getStartLat())/(getEndLat() - getStartLat()))
 
                 console.log(getRouteStartLat())
                 console.log(getRouteStartLon())
@@ -415,10 +425,10 @@ function Route(props) {
             let dX = (parseFloat(getReleaseCoordinate()[0]) - parseFloat(getClickCoordinate()[0]))*coordToPix
             let dY = (parseFloat(getReleaseCoordinate()[1]) - parseFloat(getClickCoordinate()[1]))*coordToPix
             console.log(releaseCoordinate[0])
-                setStartLat(getStartLat() - dY);
-                setEndLat(getEndLat() - dY);
-                setEndLon(getEndLon() + dX);
-                setStartLon(getStartLon() + dX);
+                setStartLat(getStartLat() + dY);
+                setEndLat(getEndLat() + dY);
+                setEndLon(getEndLon() - dX);
+                setStartLon(getStartLon() - dX);
                 requestWays();
                 printCanvas(getRoute())
 
@@ -464,25 +474,22 @@ function Route(props) {
       <header className="Route-header">
         <title>This is a title</title>
       </header>
-        <h1>{startLat}</h1>
-        <TextBox label={"Start Latitude"} onChange = {setRouteStartLat}/>
-        <TextBox label={"Start Longitude"} onChange = {setRouteStartLon}/>
-        <TextBox label={"End Latitude"} onChange = {setRouteEndLat}/>
-        <TextBox label={"End Longitude"} onChange = {setRouteEndLon}/>
+        <TextBox label={"Street 1 or Start Latitude "} onChange = {setRouteStartLat}/>
+        <TextBox label={"Cross Street 1 or Start Longitude "} onChange = {setRouteStartLon}/>
+        <TextBox label={"Street 2 or End Latitude "} onChange = {setRouteEndLat}/>
+        <TextBox label={"Cross Street 2 or End Longitude "} onChange = {setRouteEndLon}/>
         <AwesomeButton type="primary" onPress={() => {refreshButton()}}>Find Path</AwesomeButton>
         <AwesomeButton type="primary" onPress={() => {zoomIn()}}>+</AwesomeButton>
         <AwesomeButton type="primary" onPress={() => {zoomOut()}}>-</AwesomeButton>
-        <p>{ways[2]}</p>
-            <canvas
-                ref={ref}
-                style={{ width: w, height: h }}
-                routetorender={props.routetorender}
-                onChange={(e) => props.onChange(e.target.value)}
-                onMouseDown={(e) => clickedOnCanvas([e.pageX - canvas.offsetLeft, e.pageY - canvas.offsetTop])}
-                onMouseUp={(e) => releasedOnCanvas([e.pageX - canvas.offsetLeft, e.pageY - canvas.offsetTop])}
-
-            />
-            hi
+        <p> </p>
+        <canvas
+            ref={ref}
+            style={{ width: w, height: h }}
+            routetorender={props.routetorender}
+            onChange={(e) => props.onChange(e.target.value)}
+            onMouseDown={(e) => clickedOnCanvas([e.pageX - canvas.offsetLeft, e.pageY - canvas.offsetTop])}
+            onMouseUp={(e) => releasedOnCanvas([e.pageX - canvas.offsetLeft, e.pageY - canvas.offsetTop])}
+        />
     </div>
   );
 }
