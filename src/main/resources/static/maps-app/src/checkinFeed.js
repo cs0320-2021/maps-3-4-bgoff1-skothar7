@@ -9,6 +9,7 @@ function CheckinFeed() {
 
     const interval = setInterval(() => {
         getCheckins();
+        console.log("new interval");
     }, 3000);
 
     const [newCheckins, setNewCheckins] = useState([])
@@ -19,6 +20,7 @@ function CheckinFeed() {
     const getCheckins = () => {
         clearInterval(interval)
         const toSend = {
+            dummy : 42,
             //TODO: Pass in the values for the data. Follow the format the route expects!
         };
 
@@ -45,15 +47,18 @@ function CheckinFeed() {
 
             .catch(function (error) {
                 console.log(error);
+                console.log(error.response.data);
             });
     }
 
     useEffect(() => {
+        console.log("running");
         for (let i=0; i < newCheckins.length; i++) {
             let currentCheckin = newCheckins[i].split(",")
             allCheckins = allCheckins + "<option value="+currentCheckin[0]+">"+currentCheckin[0]+currentCheckin[1]
                 +currentCheckin[2]+currentCheckin[3]+currentCheckin[4]+"</option>"
         }
+        console.log(allCheckins);
     })
 
     return (

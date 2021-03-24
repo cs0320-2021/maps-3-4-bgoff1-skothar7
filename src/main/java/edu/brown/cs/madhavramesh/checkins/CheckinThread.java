@@ -54,15 +54,16 @@ public final class CheckinThread extends Thread {
         if (updates != null && !updates.isEmpty()) {
           Connection conn = Maps.getConnection();
           PreparedStatement prep;
+          System.out.println("1");
           try {
+            System.out.println("enteres CREATE TABLE condition");
             prep = conn.prepareStatement("CREATE TABLE IF NOT EXISTS map_checkin("
                 + "id INTEGER,"
                 + "name TEXT,"
                 + "ts DOUBLE,"
                 + "lat DOUBLE,"
                 + "lon DOUBLE,"
-                + "PRIMARY KEY (id),"
-                + "ON DELETE CASCADE ON UPDATE CASCADE);");
+                + "PRIMARY KEY (id));");
             prep.executeUpdate();
           } catch (SQLException e) {
             e.printStackTrace();
@@ -78,7 +79,7 @@ public final class CheckinThread extends Thread {
             UserCheckin uc = new UserCheckin(id, name, timestamp, lat, lon);
             checkins.put(timestamp, uc);
             try {
-              prep = conn.prepareStatement("INSERT INTO"+"\"map_checkin\""+" VALUES ("+id+","+ name+","+timestamp+","+lat+","+lon+")");
+              prep = conn.prepareStatement("INSERT INTO map_checkin VALUES ("+id+","+ name+","+timestamp+","+lat+","+lon+")");
             } catch (SQLException e) {
               e.printStackTrace();
             }
@@ -133,6 +134,7 @@ public final class CheckinThread extends Thread {
    * @return map from a string to a double of timestamps to checkin objects
    */
   public Map<Double, UserCheckin> getLatestCheckins() {
+    System.out.println("Gets latest Checkins");
     pause = true;
     Map<Double, UserCheckin> temp = checkins;
     checkins = Collections.synchronizedMap(new HashMap<>());

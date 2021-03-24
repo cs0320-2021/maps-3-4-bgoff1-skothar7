@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.List;
 
 import com.google.gson.Gson;
+import edu.brown.cs.madhavramesh.checkins.CheckinThread;
 import edu.brown.cs.madhavramesh.maps.MapTriggerAction;
 import edu.brown.cs.madhavramesh.maps.Maps;
 import edu.brown.cs.madhavramesh.maps.NearestTriggerAction;
@@ -49,6 +50,7 @@ public final class Main {
   private static final int DEFAULT_PORT = 4567;
   private static final Gson GSON = new Gson();
   private static double mostRecentTime = 0;
+  private static CheckinThread ct;
   private static final List<TriggerAction> ACTIONS = Arrays.asList(
       new StarsTriggerAction(),
       new NaiveNeighborsTriggerAction(),
@@ -90,6 +92,9 @@ public final class Main {
 
     // Process commands in a REPL
     REPL.run(ACTIONS);
+
+    ct = new CheckinThread();
+    ct.start();
   }
 
   private static FreeMarkerEngine createEngine() {
@@ -269,7 +274,7 @@ public final class Main {
 
       Connection conn = Maps.getConnection();
       Statement stat = conn.createStatement();
-      stat.executeUpdate("PRAGMA foreign_keys=ON;");
+      //stat.executeUpdate("PRAGMA foreign_keys=ON;");
       PreparedStatement prep = conn.prepareStatement(
           "SELECT * FROM map_checkin WHERE (map_checkin.ts >= ?) ORDER BY map_checkin.ts ASC;");
       prep.setDouble(1, mostRecentTime);
@@ -289,8 +294,11 @@ public final class Main {
         results.add(id+","+name+","+ts+","+lat+","+lon);
       }
       mostRecentTime = Double.parseDouble(ts);
+
       Map<String, Object> variables = ImmutableMap.of("checkins", results);
-      return GSON.toJson(variables);
+
+      //return GSON.toJson(variables);
+      return GSON.toJson(ct.getLatestCheckins());
 
     }
   }
