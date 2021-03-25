@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,6 +32,7 @@ public final class CheckinThread extends Thread {
   static final long MSCONVERSION = 1000;
 
   public CheckinThread() {
+    System.out.println("hello");
     checkins = Collections.synchronizedMap(new HashMap<>());
   }
 
@@ -38,6 +40,22 @@ public final class CheckinThread extends Thread {
    * runs the thread by querying the url for information on user checkins.
    */
   public synchronized void run() {
+    PreparedStatement prep;
+    Connection conn = null;
+    try {
+    Class.forName("org.sqlite.JDBC");
+    String urlToDB = "jdbc:sqlite:data/maps/checkins.sqlite3";
+    conn = DriverManager.getConnection(urlToDB);
+      prep = conn.prepareStatement("CREATE TABLE IF NOT EXISTS map_checkin ("
+          + "id INTEGER,"
+          + "name TEXT,"
+          + "ts DOUBLE,"
+          + "lat DOUBLE,"
+          + "lon DOUBLE);");
+      prep.executeUpdate();
+    } catch (SQLException | ClassNotFoundException e) {
+      e.printStackTrace();
+    }
     List<List<String>>updates = null;
 
     long lastSec = 0;
@@ -52,26 +70,10 @@ public final class CheckinThread extends Thread {
         }
 
         if (updates != null && !updates.isEmpty()) {
-          Connection conn = Maps.getConnection();
-          PreparedStatement prep;
-          System.out.println("1");
-          try {
-            System.out.println("enteres CREATE TABLE condition");
-            prep = conn.prepareStatement("CREATE TABLE IF NOT EXISTS map_checkin("
-                + "id INTEGER,"
-                + "name TEXT,"
-                + "ts DOUBLE,"
-                + "lat DOUBLE,"
-                + "lon DOUBLE,"
-                + "PRIMARY KEY (id));");
-            prep.executeUpdate();
-          } catch (SQLException e) {
-            e.printStackTrace();
-          }
           for (List<String> el : updates) {
-            double timestamp = Double.parseDouble(el.get(0));
             int id = Integer.parseInt(el.get(1));
             String name = el.get(2);
+            double timestamp = Double.parseDouble(el.get(0));
             double lat = Double.parseDouble(el.get(3));
             double lon = Double.parseDouble(el.get(4));
 
@@ -79,16 +81,12 @@ public final class CheckinThread extends Thread {
             UserCheckin uc = new UserCheckin(id, name, timestamp, lat, lon);
             checkins.put(timestamp, uc);
             try {
-              prep = conn.prepareStatement("INSERT INTO map_checkin VALUES ("+id+","+ name+","+timestamp+","+lat+","+lon+")");
+              prep = conn.prepareStatement("INSERT INTO map_checkin VALUES (" + id + ", \'" + name + "\', " + timestamp + ", " + lat + ", " + lon + ");");
+              prep.executeUpdate();
             } catch (SQLException e) {
               e.printStackTrace();
             }
 
-          }
-          try {
-            conn.close();
-          } catch (SQLException e) {
-            e.printStackTrace();
           }
         }
         lastSec = sec;
@@ -134,7 +132,6 @@ public final class CheckinThread extends Thread {
    * @return map from a string to a double of timestamps to checkin objects
    */
   public Map<Double, UserCheckin> getLatestCheckins() {
-    System.out.println("Gets latest Checkins");
     pause = true;
     Map<Double, UserCheckin> temp = checkins;
     checkins = Collections.synchronizedMap(new HashMap<>());

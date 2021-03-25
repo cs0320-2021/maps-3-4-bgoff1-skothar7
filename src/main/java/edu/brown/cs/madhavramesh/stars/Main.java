@@ -14,9 +14,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.List;
+import java.util.Set;
 
 import com.google.gson.Gson;
 import edu.brown.cs.madhavramesh.checkins.CheckinThread;
+import edu.brown.cs.madhavramesh.checkins.UserCheckin;
 import edu.brown.cs.madhavramesh.maps.MapTriggerAction;
 import edu.brown.cs.madhavramesh.maps.Maps;
 import edu.brown.cs.madhavramesh.maps.NearestTriggerAction;
@@ -79,6 +81,8 @@ public final class Main {
   }
 
   private void run() {
+    ct = new CheckinThread();
+    ct.start();
     // Parse command line arguments
     OptionParser parser = new OptionParser();
     parser.accepts("gui");
@@ -92,9 +96,6 @@ public final class Main {
 
     // Process commands in a REPL
     REPL.run(ACTIONS);
-
-    ct = new CheckinThread();
-    ct.start();
   }
 
   private static FreeMarkerEngine createEngine() {
@@ -271,20 +272,34 @@ public final class Main {
   private static class CheckinHandler implements Route {
     @Override
     public Object handle(Request request, Response response) throws Exception {
-
-      Connection conn = Maps.getConnection();
-      Statement stat = conn.createStatement();
-      //stat.executeUpdate("PRAGMA foreign_keys=ON;");
+      /*
+      Class.forName("org.sqlite.JDBC");
+      String urlToDB = "jdbc:sqlite:data/maps/checkins.sqlite3";
+      Connection conn = DriverManager.getConnection(urlToDB);
       PreparedStatement prep = conn.prepareStatement(
           "SELECT * FROM map_checkin WHERE (map_checkin.ts >= ?) ORDER BY map_checkin.ts ASC;");
       prep.setDouble(1, mostRecentTime);
-      List<String> results = new ArrayList<>();
       ResultSet rs = prep.executeQuery();
+      */
+      Map<Double, UserCheckin> rawResults = ct.getLatestCheckins();
+      Set<Double> timestampSet = rawResults.keySet();
+      List<String> results = new ArrayList<>();
       String id;
       String name;
-      String ts = Double.toString(mostRecentTime);
+      String ts/* = Double.toString(mostRecentTime)*/;
       String lat;
       String lon;
+      UserCheckin currentCheckin;
+      for (Double timestamp : timestampSet) {
+        currentCheckin = rawResults.get(timestamp);
+        id = Integer.toString(currentCheckin.getId());
+        name = currentCheckin.getName();
+        ts = Double.toString(currentCheckin.getTimestamp());
+        lat = Double.toString(currentCheckin.getLat());
+        lon = Double.toString(currentCheckin.getLon());
+        results.add(id+","+name+","+ts+","+lat+","+lon);
+      }
+      /*
       while (rs.next()) {
         id = Integer.toString(rs.getInt(1));
         name = rs.getString(2);
@@ -294,11 +309,13 @@ public final class Main {
         results.add(id+","+name+","+ts+","+lat+","+lon);
       }
       mostRecentTime = Double.parseDouble(ts);
+       */
+      String[] resultsList = results.toArray(new String[0]);
 
-      Map<String, Object> variables = ImmutableMap.of("checkins", results);
+      Map<String, Object> variables = ImmutableMap.of("checkins", resultsList);
 
-      //return GSON.toJson(variables);
-      return GSON.toJson(ct.getLatestCheckins());
+      return GSON.toJson(variables);
+      //return GSON.toJson(ct.getLatestCheckins());
 
     }
   }
@@ -311,7 +328,7 @@ public final class Main {
     public Object handle(Request request, Response response) throws Exception {
 
       JSONObject data = new JSONObject(request.body());
-      int targetID = data.getInt("id");
+      int targetID = Integer.parseInt(data.getString("id"));
 
       Connection conn = Maps.getConnection();
       Statement stat = conn.createStatement();

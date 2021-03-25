@@ -4,6 +4,7 @@ package edu.brown.cs.madhavramesh.maps;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import edu.brown.cs.madhavramesh.checkins.CheckinThread;
 import edu.brown.cs.madhavramesh.graph.DirectedGraph;
 import edu.brown.cs.madhavramesh.kdtree.KDTree;
 import java.sql.Connection;
