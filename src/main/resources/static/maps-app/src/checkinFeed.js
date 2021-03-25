@@ -2,14 +2,28 @@ import logo from './logo.svg';
 import './App.css';
 import axios from "axios";
 import React, {useState, useEffect} from 'react'
+import {AwesomeButton} from "react-awesome-button";
+import TextBox from "./TextBox";
 
 let allCheckins = ""
+
+let user = "";
+
+function setUser(u) {
+    user = u
+}
+
+function getUser() {
+    return user
+}
 
 function CheckinFeed() {
 
     const [newCheckins, setNewCheckins] = useState([])
-    const [option, setOption] = useState("")
+    const [option, setOption] = useState("h")
     let userData = ""
+
+
 
 
     /**
@@ -53,10 +67,9 @@ function CheckinFeed() {
         getCheckins();
     }, 3000);
 
-    useEffect(() => {
-        if (option != "") {
+    const searchForUser = () => {
             const toSend = {
-                id: option,
+                id: getUser(),
                 //TODO: Pass in the values for the data. Follow the format the route expects!
             };
 
@@ -93,7 +106,9 @@ function CheckinFeed() {
                     console.log(error);
                     //console.log(error.response.data);
                 });
-        }
+    }
+
+    useEffect(() => {
         for (let i=0; i < newCheckins.length; i++) {
             let currentCheckin = newCheckins[i].split(",")
             allCheckins = allCheckins + "<option value="+currentCheckin[0]+">"+currentCheckin[0] + ", " + currentCheckin[1]
@@ -107,6 +122,8 @@ function CheckinFeed() {
                 <optgroup label="checkin-list" dangerouslySetInnerHTML={{__html: allCheckins}}>
                 </optgroup>
             </select>
+            <TextBox label={"User ID "} onChange = {setUser}/>
+            <AwesomeButton type="primary" onPress={() => {searchForUser()}}>Find User Data</AwesomeButton>
             {userData}
          </div>
     );
