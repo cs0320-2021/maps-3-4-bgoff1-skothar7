@@ -30,6 +30,7 @@ function CheckinFeed() {
      * Makes an axios request.
      */
     const getCheckins = () => {
+        clearInterval(interval)
         const toSend = {
             dummy : 42,
             //TODO: Pass in the values for the data. Follow the format the route expects!
