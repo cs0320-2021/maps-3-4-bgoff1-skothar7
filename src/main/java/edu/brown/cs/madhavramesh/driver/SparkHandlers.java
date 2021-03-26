@@ -1,9 +1,18 @@
-package edu.brown.cs.madhavramesh.stars;
+package edu.brown.cs.madhavramesh.driver;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import com.google.common.collect.ImmutableMap;
+import edu.brown.cs.madhavramesh.checkins.UserCheckin;
+import edu.brown.cs.madhavramesh.maps.MapNode;
+import edu.brown.cs.madhavramesh.maps.RouteTriggerAction;
+import edu.brown.cs.madhavramesh.stars.TriggerActionExecutor;
+import org.json.JSONObject;
+import spark.ModelAndView;
+import spark.QueryParamsMap;
+import spark.Request;
+import spark.Response;
+import spark.Route;
+import spark.TemplateViewRoute;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -11,144 +20,16 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import com.google.gson.Gson;
-import edu.brown.cs.madhavramesh.checkins.CheckinThread;
-import edu.brown.cs.madhavramesh.checkins.UserCheckin;
-import edu.brown.cs.madhavramesh.maps.MapTriggerAction;
-import edu.brown.cs.madhavramesh.maps.Maps;
-import edu.brown.cs.madhavramesh.maps.NearestTriggerAction;
-import edu.brown.cs.madhavramesh.maps.RouteTriggerAction;
-import edu.brown.cs.madhavramesh.maps.WaysTriggerAction;
-import edu.brown.cs.madhavramesh.mockaroo.MockTriggerAction;
-import edu.brown.cs.madhavramesh.repl.REPL;
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
-import spark.ExceptionHandler;
-import spark.ModelAndView;
-import spark.QueryParamsMap;
-import spark.Request;
-import spark.Response;
-import spark.Route;
-import spark.Spark;
-import spark.TemplateViewRoute;
-import spark.template.freemarker.FreeMarkerEngine;
-import org.json.JSONObject;
-import org.json.JSONArray;
-
-import com.google.common.collect.ImmutableMap;
-
-import freemarker.template.Configuration;
-
-/**
- * The Main class of our project. This is where execution begins.
- */
-public final class Main {
-
-  private static final int DEFAULT_PORT = 4567;
-  private static final Gson GSON = new Gson();
-  private static double mostRecentTime = 0;
-  private static CheckinThread ct;
-  private static final List<TriggerAction> ACTIONS = Arrays.asList(
-      new StarsTriggerAction(),
-      new NaiveNeighborsTriggerAction(),
-      new NeighborsTriggerAction(),
-      new NaiveRadiusTriggerAction(),
-      new RadiusTriggerAction(),
-      new MockTriggerAction(),
-      new WaysTriggerAction(),
-      new RouteTriggerAction(),
-      new NearestTriggerAction(),
-      new MapTriggerAction());
-
-  /**
-   * The initial method called when execution begins.
-   *
-   * @param args An array of command line arguments
-   */
-  public static void main(String[] args) {
-    new Main(args).run();
-  }
-
-  private String[] args;
-
-  private Main(String[] args) {
-    this.args = args;
-  }
-
-  private void run() {
-    ct = new CheckinThread();
-    ct.start();
-    // Parse command line arguments
-    OptionParser parser = new OptionParser();
-    parser.accepts("gui");
-    parser.accepts("port").withRequiredArg().ofType(Integer.class)
-        .defaultsTo(DEFAULT_PORT);
-    OptionSet options = parser.parse(args);
-
-    if (options.has("gui")) {
-      runSparkServer((int) options.valueOf("port"));
-    }
-
-    // Process commands in a REPL
-    REPL.run(ACTIONS);
-  }
-
-  private static FreeMarkerEngine createEngine() {
-    Configuration config = new Configuration();
-    File templates = new File("src/main/resources/spark/template/freemarker");
-    try {
-      config.setDirectoryForTemplateLoading(templates);
-    } catch (IOException ioe) {
-      System.out.printf("ERROR: Unable use %s for template loading.%n",
-          templates);
-      System.exit(1);
-    }
-    return new FreeMarkerEngine(config);
-  }
-
-  private void runSparkServer(int port) {
-    Spark.port(port);
-    Spark.externalStaticFileLocation("src/main/resources/static");
-    Spark.exception(Exception.class, new ExceptionPrinter());
-
-    Spark.options("/*", (request, response) -> {
-      String accessControlRequestHeaders = request.headers("Access-Control-Request-Headers");
-      if (accessControlRequestHeaders != null) {
-        response.header("Access-Control-Allow-Headers", accessControlRequestHeaders);
-      }
-
-      String accessControlRequestMethod = request.headers("Access-Control-Request-Method");
-
-      if (accessControlRequestMethod != null) {
-        response.header("Access-Control-Allow-Methods", accessControlRequestMethod);
-      }
-
-      return "OK";
-    });
-
-    Spark.before((request, response) -> response.header("Access-Control-Allow-Origin", "*"));
-
-    FreeMarkerEngine freeMarker = createEngine();
-
-    // Setup Spark Routes
-    Spark.get("/stars", new FrontHandler(), freeMarker);
-    Spark.post("/input", new InputHandler(), freeMarker);
-    Spark.post("/results", new SubmitHandler(), freeMarker);
-    Spark.post("/ways", new WaysHandler());
-    Spark.post("/route", new RouteHandler());
-    Spark.post("/checkin", new CheckinHandler());
-    Spark.post("/user", new UserHandler());
-  }
+public class SparkHandlers {
 
   /**
    * Handle requests to the front page of our Stars website.
    */
-  private static class FrontHandler implements TemplateViewRoute {
+  protected static class FrontHandler implements TemplateViewRoute {
     @Override
     public ModelAndView handle(Request req, Response res) {
       Map<String, Object> variables = ImmutableMap.of(
@@ -157,7 +38,7 @@ public final class Main {
     }
   }
 
-  private static class InputHandler implements TemplateViewRoute {
+  protected static class InputHandler implements TemplateViewRoute {
     private static String command;
 
     @Override
@@ -185,7 +66,7 @@ public final class Main {
     }
   }
 
-  private static class SubmitHandler implements TemplateViewRoute {
+  protected static class SubmitHandler implements TemplateViewRoute {
     @Override
     public ModelAndView handle(Request req, Response res) throws Exception {
       QueryParamsMap qm = req.queryMap();
@@ -198,7 +79,7 @@ public final class Main {
       args.removeIf(arg -> arg == null);
       String[] argsArray = args.toArray(new String[args.size()]);
 
-      TriggerActionExecutor getResults = new TriggerActionExecutor(ACTIONS);
+      TriggerActionExecutor getResults = new TriggerActionExecutor(Main.getACTIONS());
       String results =
           getResults.executeTriggerAction(InputHandler.getCommand(), argsArray, false);
       results = results.replace("\n", "<br/>");
@@ -215,18 +96,51 @@ public final class Main {
    * Handles requests made for a route.
    */
 
-  private static class RouteHandler implements Route {
+  protected static class RouteHandler implements Route {
     @Override
     public Object handle(Request request, Response response) throws Exception {
 
       JSONObject data = new JSONObject(request.body());
+
       String sLat = data.getString("srclat");
       String sLon = data.getString("srclong");
       String dLat = data.getString("destlat");
       String dLon = data.getString("destlong");
 
+      TriggerActionExecutor getResults = new TriggerActionExecutor(Main.getACTIONS());
 
-      TriggerActionExecutor getResults = new TriggerActionExecutor(ACTIONS);
+      boolean firstPairDoubles = false;
+      try {
+        Double.parseDouble(sLat);
+        Double.parseDouble(sLon);
+        firstPairDoubles = true;
+        Double.parseDouble(dLat);
+        Double.parseDouble(dLat);
+        //all are numbers
+      } catch (NumberFormatException e){
+        if (firstPairDoubles) {
+          MapNode temp = RouteTriggerAction.nearestToCoords(dLat, dLon);
+
+          dLat = Double.toString(temp.getCoordinate(0));
+          dLon = Double.toString(temp.getCoordinate(1));
+          //find intersection coordinate of 3/4
+        } else {
+          try {
+            Double.parseDouble(dLat);
+            Double.parseDouble(dLat);
+
+            MapNode temp = RouteTriggerAction.nearestToCoords(sLat, sLon);
+
+            sLat = Double.toString(temp.getCoordinate(0));
+            sLon = Double.toString(temp.getCoordinate(1));
+            //find intersection coordinate of 1/2
+          } catch (NumberFormatException ee){
+            //all are roads
+          }
+        }
+
+      }
+
       String[] results =
           getResults.executeTriggerAction("route",
               new String[] {sLat, sLon, dLat, dLon},
@@ -235,7 +149,7 @@ public final class Main {
 
 
       Map<String, Object> variables = ImmutableMap.of("route", Arrays.copyOfRange(results, 0, results.length/2));
-      return GSON.toJson(variables);
+      return Main.getGSON().toJson(variables);
 
     }
   }
@@ -243,7 +157,7 @@ public final class Main {
   /**
    * Handles requests made for Ways.
    */
-  private static class WaysHandler implements Route {
+  protected static class WaysHandler implements Route {
     @Override
     public Object handle(Request request, Response response) throws Exception {
 
@@ -253,7 +167,7 @@ public final class Main {
       double dLat = data.getDouble("destlat");
       double dLon = data.getDouble("destlong");
 
-      TriggerActionExecutor getResults = new TriggerActionExecutor(ACTIONS);
+      TriggerActionExecutor getResults = new TriggerActionExecutor(Main.getACTIONS());
       String[] results =
           getResults.executeTriggerAction("ways",
               new String[] {Double.toString(sLat), Double.toString(sLon), Double.toString(dLat),Double.toString(dLon)},
@@ -261,7 +175,7 @@ public final class Main {
 
 
       Map<String, Object> variables = ImmutableMap.of("ways", results);
-      return GSON.toJson(variables);
+      return Main.getGSON().toJson(variables);
 
     }
   }
@@ -269,7 +183,7 @@ public final class Main {
   /**
    * Handles requests made for Checkins.
    */
-  private static class CheckinHandler implements Route {
+  protected static class CheckinHandler implements Route {
     @Override
     public Object handle(Request request, Response response) throws Exception {
       /*
@@ -281,7 +195,7 @@ public final class Main {
       prep.setDouble(1, mostRecentTime);
       ResultSet rs = prep.executeQuery();
       */
-      Map<Double, UserCheckin> rawResults = ct.getLatestCheckins();
+      Map<Double, UserCheckin> rawResults = Main.getCt().getLatestCheckins();
       Set<Double> timestampSet = rawResults.keySet();
       List<String> results = new ArrayList<>();
       String id;
@@ -314,7 +228,7 @@ public final class Main {
 
       Map<String, Object> variables = ImmutableMap.of("checkins", resultsList);
 
-      return GSON.toJson(variables);
+      return Main.getGSON().toJson(variables);
       //return GSON.toJson(ct.getLatestCheckins());
 
     }
@@ -323,14 +237,26 @@ public final class Main {
   /**
    * Handles requests made for User Data.
    */
-  private static class UserHandler implements Route {
+  protected static class UserHandler implements Route {
     @Override
     public Object handle(Request request, Response response) throws Exception {
 
-      JSONObject data = new JSONObject(request.body());
-      int targetID = Integer.parseInt(data.getString("id"));
 
-      Connection conn = Maps.getConnection();
+      int targetID;
+      JSONObject data = new JSONObject(request.body());
+      try {
+        targetID = Integer.parseInt(data.getString("id"));
+      } catch (NumberFormatException e) {
+        System.out.print("ERROR: Number Format Exception");
+
+        Map<String, Object> variables = ImmutableMap.of("user",new ArrayList<>());
+        return Main.getGSON().toJson(variables);
+      }
+
+
+      Class.forName("org.sqlite.JDBC");
+      String urlToDB = "jdbc:sqlite:data/maps/checkins.sqlite3";
+      Connection conn = DriverManager.getConnection(urlToDB);
       Statement stat = conn.createStatement();
       stat.executeUpdate("PRAGMA foreign_keys=ON;");
       PreparedStatement prep = conn.prepareStatement(
@@ -352,27 +278,8 @@ public final class Main {
         results.add(id+","+name+","+ts+","+lat+","+lon);
       }
       Map<String, Object> variables = ImmutableMap.of("user", results);
-      return GSON.toJson(variables);
+      return Main.getGSON().toJson(variables);
 
     }
   }
-
-
-  /**
-   * Display an error page when an exception occurs in the server.
-   */
-  private static class ExceptionPrinter implements ExceptionHandler {
-    @Override
-    public void handle(Exception e, Request req, Response res) {
-      res.status(500);
-      StringWriter stacktrace = new StringWriter();
-      try (PrintWriter pw = new PrintWriter(stacktrace)) {
-        pw.println("<pre>");
-        e.printStackTrace(pw);
-        pw.println("</pre>");
-      }
-      res.body(stacktrace.toString());
-    }
-  }
-
 }

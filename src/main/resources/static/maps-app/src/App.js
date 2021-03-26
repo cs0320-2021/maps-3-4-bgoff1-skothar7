@@ -1,4 +1,4 @@
-import logo from './logo.svg';
+import logo from './logo.png';
 import './App.css';
 import Route from './Route'
 import CheckinFeed from "./checkinFeed";
@@ -9,7 +9,13 @@ function App() {
       <header className="App-header">
         <Route/>
         <CheckinFeed/>
+          <br>
+
+          </br>
         <img src={logo} className="App-logo" alt="logo" />
+        <p>
+
+        </p>
       </header>
     </div>
   );

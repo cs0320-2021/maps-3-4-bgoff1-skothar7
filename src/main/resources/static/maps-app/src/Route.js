@@ -41,6 +41,8 @@ let routeStartLon = "";
 let routeEndLat = "";
 let routeEndLon = "";
 let route = [];
+let totalPathLength;
+let journeyInfoString = "Enter your source and destination to find the shortest path and how long it will take to walk there.";
 
 let hasClicked = false;
 
@@ -273,7 +275,7 @@ function Route(props) {
             } else {
                 if (type === "path") {
                     console.log("yes")
-                    ctx.strokeStyle = "pink";
+                    ctx.strokeStyle = "#80CA28";
                     ctx.lineWidth = 5
                     ctx.stroke()
                     if (!startCircle) {
@@ -290,6 +292,14 @@ function Route(props) {
                             //ctx.rect(endPixX - 21, endPixY - 21, 42, 42)
                         }
                     }
+                    startLatWay = parseFloat(parsedWay[1]);
+                    startLonWay = parseFloat(parsedWay[2]);
+                    endLatWay = parseFloat(parsedWay[3]);
+                    endLonWay = parseFloat(parsedWay[4]);
+                    totalPathLength = totalPathLength + (Math.sqrt(Math.pow(startLatWay-endLatWay, 2) + Math.pow(startLonWay-endLonWay, 2)));
+                    journeyInfoString = "Your journey will be "+totalPathLength*69+" miles. This will take you "+totalPathLength*22.25*60+" minutes by foot."
+                    console.log(journeyInfoString)
+
                 }
             }
             ctx.stroke();
@@ -308,6 +318,21 @@ function Route(props) {
         console.log(getRouteEndLon())
             console.log(ways.length)
         console.log(hasClicked)
+        if (getRouteStartLat()==="" && getRouteStartLon()==="" && getRouteEndLat()!=="" && getRouteEndLon()!==""){
+
+            setRouteStartLon((getReleaseCoordinate()[0]*(getEndLon() - getStartLon())/w +  getStartLon()).toString())
+            setRouteStartLat((getReleaseCoordinate()[1]*(getEndLat() - getStartLat())/h +  getStartLat()).toString())
+            // setRouteStartLat(getClickCoordinate()[0])
+            // setRouteStartLon()
+        } else if (getRouteEndLat()==="" && getRouteEndLon()==="" && getRouteStartLat()!=="" && getRouteStartLon()!==""){
+
+            setRouteEndLon((getReleaseCoordinate()[0]*(getEndLon() - getStartLon())/w +  getStartLon()).toString())
+            setRouteEndLat((getReleaseCoordinate()[1]*(getEndLat() - getStartLat())/h +  getStartLat()).toString())
+        }
+        console.log(getRouteStartLat())
+        console.log(getRouteStartLon())
+        console.log(getRouteEndLat())
+        console.log(getRouteEndLon())
 
         //requestWays()
         const toSend = {
@@ -337,6 +362,7 @@ function Route(props) {
                 //TODO: Go to the Main.java in the server from the stencil, and find what variable you should put here.
                 //Note: It is very important that you understand how this is set up and why it works!
                 let currentRoute = response.data["route"]
+                totalPathLength = 0;
                 setRoute(currentRoute);//console.log  the response.data["route"]
                 printCanvas(currentRoute)
             })
@@ -352,6 +378,8 @@ function Route(props) {
         // -71.404687
         //41.827525
         //-71.400441
+
+
 
 
 
@@ -481,7 +509,9 @@ function Route(props) {
         <AwesomeButton type="primary" onPress={() => {refreshButton()}}>Find Path</AwesomeButton>
         <AwesomeButton type="primary" onPress={() => {zoomIn()}}>+</AwesomeButton>
         <AwesomeButton type="primary" onPress={() => {zoomOut()}}>-</AwesomeButton>
-        <p> </p>
+        <p>
+            {journeyInfoString}
+      </p>
         <canvas
             ref={ref}
             style={{ width: w, height: h }}
