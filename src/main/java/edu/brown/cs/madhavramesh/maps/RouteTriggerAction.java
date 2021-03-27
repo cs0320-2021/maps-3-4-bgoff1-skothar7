@@ -125,75 +125,17 @@ public class RouteTriggerAction implements TriggerAction {
 
       MapNode start = NearestTriggerAction.closestNode(lat1d, long1d, currentNodes);
       MapNode end = NearestTriggerAction.closestNode(lat2d, long2d, currentNodes);
-      System.out.println("yo "+lat1d+" "+long1d+" "+lat2d+" "+long2d);
       return new MapNode[]{start, end};
     } catch (NumberFormatException e) {
       String street1 = args[0].replaceAll("\"", "");
-      System.out.println(street1);
       String crossStreet1 = args[1].replaceAll("\"", "");
-      System.out.println(crossStreet1);
       String street2 = args[2].replaceAll("\"", "");
       String crossStreet2 = args[3].replaceAll("\"", "");
 
       MapNode start = nearestToCoords(street1, crossStreet1);
-//      KDTree<MapNode> currentNodes = Maps.getNodesTree();
-//
-//      Connection conn = Maps.getConnection();
-//      Statement stat = conn.createStatement();
-//      stat.executeUpdate("PRAGMA foreign_keys=ON;");
-//
-//      PreparedStatement prep = conn.prepareStatement(
-//          "SELECT DISTINCT node.id, node.latitude, node.longitude FROM node "
-//              + "INNER JOIN way AS w1 ON node.id = w1.start "
-//              + "INNER JOIN way AS w2 ON (w1.start = w2.start OR w1.start = w2.end) "
-//              + "AND w1.name =? AND w2.name =?"
-//              + "UNION SELECT DISTINCT node.id, node.latitude, node.longitude FROM node "
-//              + "INNER JOIN way AS w3 ON node.id = w3.end "
-//              + "INNER JOIN way AS w4 ON (w3.end = w4.start OR w3.end = w4.end) "
-//              + "AND w3.name =? AND w4.name =?");
-//      prep.setString(1, street1);
-//      prep.setString(2, crossStreet1);
-//      prep.setString(3, street1);
-//      prep.setString(4, crossStreet1);
-//
-//      ResultSet rs1 = prep.executeQuery();
-//
-//      String id1s = null;
-//      Double lat1s = null;
-//      Double long1s = null;
-//      MapNode start = null;
-//      if (rs1.next()) {
-//        id1s = rs1.getString(1);
-//        lat1s = rs1.getDouble(2);
-//        long1s = rs1.getDouble(3);
-//        start = NearestTriggerAction.closestNode(lat1s, long1s, currentNodes);
-//      }
-//      System.out.println(id1s);
-//      rs1.close();
+
 
       MapNode end = nearestToCoords(street2, crossStreet2);
-//      prep.setString(1, street2);
-//      prep.setString(2, crossStreet2);
-//      prep.setString(3, street2);
-//      prep.setString(4, crossStreet2);
-//      ResultSet rs2 = prep.executeQuery();
-//
-//      String id2s = null;
-//      Double lat2s = null;
-//      Double long2s = null;
-//      MapNode end = null;
-//      if (rs2.next()) {
-//        id2s = rs2.getString(1);
-//        lat2s = rs2.getDouble(2);
-//        long2s = rs2.getDouble(3);
-//        end = NearestTriggerAction.closestNode(lat2s, long2s, currentNodes);
-//      }
-//
-//      System.out.println(id2s);
-//
-//      rs2.close();
-//      prep.close();
-//      stat.close();
 
       if (!(start == null) && !(end == null)) {
         return new MapNode[]{start, end};
@@ -227,17 +169,15 @@ public class RouteTriggerAction implements TriggerAction {
 
     ResultSet rs1 = prep.executeQuery();
 
-    String id1s = null;
     Double lat1s = null;
     Double long1s = null;
     MapNode start = null;
     if (rs1.next()) {
-      id1s = rs1.getString(1);
+
       lat1s = rs1.getDouble(2);
       long1s = rs1.getDouble(3);
       start = NearestTriggerAction.closestNode(lat1s, long1s, currentNodes);
     }
-    System.out.println(id1s);
     rs1.close();
     return start;
   }
@@ -256,7 +196,6 @@ public class RouteTriggerAction implements TriggerAction {
 
     ultimateEndID = end.getStringID();
 
-    System.out.println("dg size: "+Maps.getDg().size());
     Dijkstra dijkstra = new Dijkstra(Maps.getDg(), start, end);
 
 
@@ -274,7 +213,6 @@ public class RouteTriggerAction implements TriggerAction {
       return content;
       //buffer.reset();
     } else {
-      System.out.println("routetriggeraction:231 " + String.join(";", dijkstra.findShortestPathGUI()));
       return String.join(";", dijkstra.findShortestPathGUI());
     }
 

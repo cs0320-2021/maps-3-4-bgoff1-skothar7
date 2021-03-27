@@ -79,9 +79,6 @@ public class MapTriggerAction implements TriggerAction {
       Maps.setNodesTree(new KDTree<MapNode>(nodes));
       Maps.setIdToNodeMap(idToNodeMap);
       Maps.setDg(dg);
-      if (nodes.size() < 1) {
-        System.out.println(Maps.getNodesTree().toString());
-      }
       rs.close();
       prep.close();
 

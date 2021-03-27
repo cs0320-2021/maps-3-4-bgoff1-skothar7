@@ -75,7 +75,7 @@ public class NearestTriggerAction implements TriggerAction {
   }
 
   public static MapNode closestNode(double lat, double lon, KDTree<MapNode> nodes) {
-    if (nodes.getNode().isEmpty()) {
+    if (nodes==null || nodes.getNode().isEmpty()) {
       throw new NullPointerException();
     }
     return closestNode(lat, lon, nodes.getNode().get(), nodes, 0);

@@ -85,8 +85,7 @@ public final class Main {
   }
 
   private void run() {
-    ct = new CheckinThread();
-    ct.start();
+
     // Parse command line arguments
     OptionParser parser = new OptionParser();
     parser.accepts("gui");
@@ -116,6 +115,8 @@ public final class Main {
   }
 
   private void runSparkServer(int port) {
+    ct = new CheckinThread();
+    ct.start();
     Spark.port(port);
     Spark.externalStaticFileLocation("src/main/resources/static");
     Spark.exception(Exception.class, new ExceptionPrinter());

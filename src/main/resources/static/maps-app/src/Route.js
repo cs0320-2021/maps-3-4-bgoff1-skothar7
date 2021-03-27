@@ -150,12 +150,10 @@ function Route(props) {
     const h = 600.0;
     let coordToPix = Math.abs(parseFloat((getStartLon() - getEndLon())/w));
     const [zoomInFactor, setZoomInFactor] = useState(1);
-    const [startCanvas, refreshCanvas] = useState("");
+    const [journeyStringMsg, setJourneyStringMsg] = useState("");
 //TODO: Fill in the ? with appropriate names/values for a route.
 //Hint: The defaults for latitudes and longitudes were 0s. What might the default useState value for a route be?
     const [ways, setWays] = useState([]);
-    //const [route, setRoute] = useState([]);
-    //let toCanvas = [route[3], startLat, startLon, endLat, endLon];
 
     /**
      * Makes an axios request.
@@ -194,6 +192,7 @@ function Route(props) {
             .catch(function (error) {
                 console.log(error);
             });
+
     }
 
         let ref = useRef();
@@ -226,10 +225,21 @@ function Route(props) {
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             printCanvas(ways)
             printCanvas(getRoute())
-
+            //journeyStringMsg = ;
+            //setJourneyStringMsg(journeyInfoString)
+            //console.log(journeyStringMsg)
             console.log("done")
 
         })
+    // useEffect(() => {
+    //
+    //
+    //     //journeyStringMsg = ;
+    //
+    //     console.log(journeyStringMsg)
+    //
+    //
+    // }, [journeyStringMsg])
 
     const printCanvas = (toPrint) => {
             console.log(toPrint.length)
@@ -261,9 +271,7 @@ function Route(props) {
             startPixY = h*(startLatWay - getStartLat())/(getEndLat() - getStartLat())
             endPixX = w*(endLonWay - getStartLon())/(getEndLon() - getStartLon())
             endPixY = h*(endLatWay - getStartLat())/(getEndLat() - getStartLat())
-            if (i%10===0){
-                console.log(startPixX)
-            }
+
             ctx.beginPath();
             ctx.moveTo(startPixX, startPixY);
             ctx.lineTo(endPixX, endPixY);
@@ -297,14 +305,16 @@ function Route(props) {
                     endLatWay = parseFloat(parsedWay[3]);
                     endLonWay = parseFloat(parsedWay[4]);
                     totalPathLength = totalPathLength + (Math.sqrt(Math.pow(startLatWay-endLatWay, 2) + Math.pow(startLonWay-endLonWay, 2)));
-                    journeyInfoString = "Your journey will be "+totalPathLength*69+" miles. This will take you "+totalPathLength*22.25*60+" minutes by foot."
+                    journeyInfoString = "Your journey will be "+Number((totalPathLength*69).toFixed(2))+" miles. This will take you "+Number((totalPathLength*22.25*60).toFixed(2))+" minutes by foot."
                     console.log(journeyInfoString)
+
 
                 }
             }
             ctx.stroke();
             ctx.lineWidth = 1
         }
+        //setJourneyStringMsg(journeyInfoString)
         console.log(toPrint.length)
     }
     const refreshButton = () => {
@@ -322,8 +332,7 @@ function Route(props) {
 
             setRouteStartLon((getReleaseCoordinate()[0]*(getEndLon() - getStartLon())/w +  getStartLon()).toString())
             setRouteStartLat((getReleaseCoordinate()[1]*(getEndLat() - getStartLat())/h +  getStartLat()).toString())
-            // setRouteStartLat(getClickCoordinate()[0])
-            // setRouteStartLon()
+
         } else if (getRouteEndLat()==="" && getRouteEndLon()==="" && getRouteStartLat()!=="" && getRouteStartLon()!==""){
 
             setRouteEndLon((getReleaseCoordinate()[0]*(getEndLon() - getStartLon())/w +  getStartLon()).toString())
@@ -365,6 +374,7 @@ function Route(props) {
                 totalPathLength = 0;
                 setRoute(currentRoute);//console.log  the response.data["route"]
                 printCanvas(currentRoute)
+                setJourneyStringMsg(journeyInfoString)
             })
 
             .catch(function (error) {
@@ -378,16 +388,7 @@ function Route(props) {
         // -71.404687
         //41.827525
         //-71.400441
-
-
-
-
-
     }
-
-    //clickedOnCanvas setter sets pixels x,y
-    //release does the same
-
 
     const clickedOnCanvas = (clicked) => {
 
@@ -464,6 +465,23 @@ function Route(props) {
         }
     }
 
+    const scrollHandler = (scrollVal) => {
+
+        if (scrollVal<0){
+            //zooming in
+            zoomIn()
+        } else if (scrollVal>0){
+            zoomOut()
+
+        }
+
+
+    }
+
+
+
+
+
   const zoomIn = () => {
       setZoomInFactor(0.91);
       setZoomCoords();
@@ -510,7 +528,7 @@ function Route(props) {
         <AwesomeButton type="primary" onPress={() => {zoomIn()}}>+</AwesomeButton>
         <AwesomeButton type="primary" onPress={() => {zoomOut()}}>-</AwesomeButton>
         <p>
-            {journeyInfoString}
+            {journeyStringMsg}
       </p>
         <canvas
             ref={ref}
@@ -519,6 +537,7 @@ function Route(props) {
             onChange={(e) => props.onChange(e.target.value)}
             onMouseDown={(e) => clickedOnCanvas([e.pageX - canvas.offsetLeft, e.pageY - canvas.offsetTop])}
             onMouseUp={(e) => releasedOnCanvas([e.pageX - canvas.offsetLeft, e.pageY - canvas.offsetTop])}
+            onWheel = {(e) => scrollHandler(e.deltaY)}
         />
     </div>
   );

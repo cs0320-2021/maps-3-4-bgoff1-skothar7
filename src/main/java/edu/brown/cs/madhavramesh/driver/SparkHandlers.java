@@ -145,7 +145,6 @@ public class SparkHandlers {
           getResults.executeTriggerAction("route",
               new String[] {sLat, sLon, dLat, dLon},
               false).split(";");
-      System.out.println("LENGTH: "+results.length);
 
 
       Map<String, Object> variables = ImmutableMap.of("route", Arrays.copyOfRange(results, 0, results.length/2));

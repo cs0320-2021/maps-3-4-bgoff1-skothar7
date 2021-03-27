@@ -55,7 +55,7 @@ function CheckinFeed() {
             .then(response => {
                 //TODO: Go to the Main.java in the server from the stencil, and find what variable you should put here.
                 //Note: It is very important that you understand how this is set up and why it works!
-                if(response != undefined) {
+                if(response !== undefined) {
                     setNewCheckins(response.data["checkins"]);
                 }
             })
@@ -68,7 +68,7 @@ function CheckinFeed() {
 
 
     }
-    setTimeout(getCheckins, 9000);
+
     //setInterval(getCheckins, 3000);
 
     // setTimeout(() => {
@@ -127,6 +127,7 @@ function CheckinFeed() {
     }
 
     useEffect(() => {
+        setTimeout(getCheckins, 3000);
         console.log("inside useEffect");
         for (let i=0; i < newCheckins.length; i++) {
             let currentCheckin = newCheckins[i].split(",")

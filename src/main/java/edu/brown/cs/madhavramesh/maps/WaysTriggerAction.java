@@ -80,7 +80,6 @@ public class WaysTriggerAction implements TriggerAction {
     } catch (IllegalArgumentException e) {
       System.err.println(e.getMessage());
     } catch (Exception e) {
-      e.printStackTrace();
       System.err.println("ERROR: Could not run ways command");
     } finally {
       return result.toString();
