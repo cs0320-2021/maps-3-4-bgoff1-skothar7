@@ -1,0 +1,12 @@
+#!/usr/local/bin/bash
+
+echo "Your Java version will now be reset to Java 11! Please overwrite your bashrc when prompted."
+grep -v  'jdk1.8.0' ~/.bashrc > ~/.bashrc2; mv ~/.bashrc2 ~/.bashrc
+unalias java 2>/dev/null
+unalias javac 2>/dev/null
+grep -qxF 'export JAVA_HOME="/usr/lib/jvm/default-java"' ~/.bashrc || echo 'export JAVA_HOME="/usr/lib/jvm/default-java"' >> ~/.bashrc
+source ~/.bashrc
+java -version 2>&1 | grep -qF '11.0.6' || echo "You do not have Java 11 properly set up. Please contact a TA."
+
+echo "Unless otherwise indicated, you should now have Java 11 set up correctly!"
+echo "You can double check by running java -version."
