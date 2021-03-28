@@ -7,11 +7,12 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
+        {/*Map display and input text boxes at top of page*/}
         <Route/>
+        {/*Feed of server checkins and search box at bottom of page*/}
         <CheckinFeed/>
-          <br>
-
-          </br>
+          <br> </br>
+        {/*Spinning tim face*/}
         <img src={logo} className="App-logo" alt="logo" />
         <p>
 

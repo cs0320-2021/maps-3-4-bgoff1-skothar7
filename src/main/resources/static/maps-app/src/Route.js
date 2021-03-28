@@ -7,15 +7,14 @@ import { AwesomeButton } from "react-awesome-button";
 import "react-awesome-button/dist/styles.css";
 import axios from "axios";
 
-// global reference to the oldCanvas element
+// global reference to the canvas element
 let canvas;
 
-// global reference to the oldCanvas' context
+// global reference to the canvas' context
 let ctx;
 
-
-
 //http://www.petecorey.com/blog/2019/08/19/animating-a-canvas-with-react-hooks/
+//helps to smooth lines drawn on canvas by increasing resolution
 const getPixelRatio = context => {
     let backingStore =
         context.backingStorePixelRatio ||
@@ -28,13 +27,13 @@ const getPixelRatio = context => {
     return (window.devicePixelRatio || 1) / backingStore;
 };
 
+//initiate values for first render
 let startLat = 41.831311;
 let startLon = -71.406524;
 let endLat = 41.821395;
 let endLon = -71.396608;
 let clickCoordinate = [];
 let releaseCoordinate = [];
-let clickCoordinate2 = [];
 let releaseCoordinate2 = [];
 let routeStartLat = "";
 let routeStartLon = "";
@@ -43,9 +42,10 @@ let routeEndLon = "";
 let route = [];
 let totalPathLength;
 let journeyInfoString = "Enter your source and destination to find the shortest path and how long it will take to walk there.";
-
 let hasClicked = false;
 
+
+//getters and setters for global values
 function setStartLat(slat) {
     startLat = parseFloat(slat)
 }
@@ -87,7 +87,6 @@ function getRouteStartLat() {
 }
 
 function setRouteStartLon(slon) {
-    console.log("88 "+slon)
     routeStartLon = slon
 }
 
@@ -148,20 +147,19 @@ function getRoute() {
 function Route(props) {
     const w = 600.0;
     const h = 600.0;
-    let coordToPix = Math.abs(parseFloat((getStartLon() - getEndLon())/w));
+    //Ratio used to convert between clicks on the screen and latitudes used to define ways
+    let coordToPix = Math.abs(((getStartLon() - getEndLon())/w));
+    //The ratio of zooming from the most recent zoom action
     const [zoomInFactor, setZoomInFactor] = useState(1);
+    //Message telling the user how long their route will take
     const [journeyStringMsg, setJourneyStringMsg] = useState("");
-//TODO: Fill in the ? with appropriate names/values for a route.
-//Hint: The defaults for latitudes and longitudes were 0s. What might the default useState value for a route be?
+    //The ways being drawn on the canvas
     const [ways, setWays] = useState([]);
 
-    /**
-     * Makes an axios request.
-     */
+    // Makes an axios request and gets all ways within current map view
     const requestWays = () => {
-        console.log(9 + " " + startLon)
         const toSend = {
-            //TODO: Pass in the values for the data. Follow the format the route expects!
+            //passes in boundaries of current map view
             srclat : getStartLat(),
             srclong : getStartLon(),
             destlat : getEndLat(),
@@ -175,18 +173,13 @@ function Route(props) {
             }
         }
 
-        //Install and import this!
-        //TODO: Fill in 1) location for request 2) your data 3) configuration
         axios.post(
             "http://localhost:4567/ways",
             toSend,
             config
         )
             .then(response => {
-                console.log(response.data);
-                //TODO: Go to the Main.java in the server from the stencil, and find what variable you should put here.
-                //Note: It is very important that you understand how this is set up and why it works!
-                setWays(response.data["ways"]);//console.log  the response.data["route"]
+                setWays(response.data["ways"]);
             })
 
             .catch(function (error) {
@@ -195,72 +188,50 @@ function Route(props) {
 
     }
 
-        let ref = useRef();
-        const [firstRender, setFirstRender] = useState(true);
-        useEffect(() => {
-            if (firstRender) {
-                setFirstRender(false)
-                requestWays()
-            }
-            canvas = ref.current;
-            //http://www.petecorey.com/blog/2019/08/19/animating-a-canvas-with-react-hooks/
-            //smooths lines
-            ctx = canvas.getContext("2d");
-            let ratio = getPixelRatio(ctx);
-            let width = getComputedStyle(canvas).getPropertyValue('width').slice(0, -2);
-            let height = getComputedStyle(canvas).getPropertyValue('height').slice(0, -2);
-            canvas.width = width * ratio;
-            canvas.height = height * ratio;
-            canvas.style.width = `${width}px`;
-            canvas.style.height = `${height}px`;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.lineWidth = 1
-
-            console.log(getEndLat());
-            console.log(getEndLon());
-            console.log(getStartLat());
-            console.log(getStartLon());
-
-            ctx.fillStyle = "#e8d8c3";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            printCanvas(ways)
-            printCanvas(getRoute())
-            //journeyStringMsg = ;
-            //setJourneyStringMsg(journeyInfoString)
-            //console.log(journeyStringMsg)
-            console.log("done")
-
-        })
-    // useEffect(() => {
-    //
-    //
-    //     //journeyStringMsg = ;
-    //
-    //     console.log(journeyStringMsg)
-    //
-    //
-    // }, [journeyStringMsg])
+    let ref = useRef();
+    //We use this to load the initial view of Browns campus on reloading the page
+    const [firstRender, setFirstRender] = useState(true);
+    useEffect(() => {
+        if (firstRender) {
+            setFirstRender(false)
+            requestWays()
+        }
+        canvas = ref.current;
+        //http://www.petecorey.com/blog/2019/08/19/animating-a-canvas-with-react-hooks/
+        //smooths lines
+        ctx = canvas.getContext("2d");
+        let ratio = getPixelRatio(ctx);
+        let width = getComputedStyle(canvas).getPropertyValue('width').slice(0, -2);
+        let height = getComputedStyle(canvas).getPropertyValue('height').slice(0, -2);
+        canvas.width = width * ratio;
+        canvas.height = height * ratio;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        //Print route on top of ways and ways on top of background so that the nothing gets covered up
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.lineWidth = 1
+        ctx.fillStyle = "#e8d8c3";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        printCanvas(ways)
+        printCanvas(getRoute())
+    })
 
     const printCanvas = (toPrint) => {
-            console.log(toPrint.length)
+        console.log("Printing " + toPrint.length + " elements")
         let parsedWay;
         let type;
         let startLatWay;
         let startLonWay;
         let endLatWay;
         let endLonWay;
-        let startCircle;
+        let startCircle = false;
         let startPixX;
         let startPixY;
         let endPixX;
         let endPixY;
 
-        startCircle = false
-
-        console.log("low" + toPrint.length);
-
         for (let i=0; i<toPrint.length; i++) {
-
+            //extracts all data needed to print the way at index i
             parsedWay = toPrint[i].split(",");
             type = parsedWay[0]
             startLatWay = parseFloat(parsedWay[1]);
@@ -271,81 +242,68 @@ function Route(props) {
             startPixY = h*(startLatWay - getStartLat())/(getEndLat() - getStartLat())
             endPixX = w*(endLonWay - getStartLon())/(getEndLon() - getStartLon())
             endPixY = h*(endLatWay - getStartLat())/(getEndLat() - getStartLat())
-
             ctx.beginPath();
             ctx.moveTo(startPixX, startPixY);
             ctx.lineTo(endPixX, endPixY);
-            //ctx.moveTo(w*(startLon - startLon)/(endLon - startLon), h-h*(startLat - startLat)/(endLat - startLat));
-            //ctx.lineTo(w*(endLon - startLon)/(endLon - startLon), h-h*(endLat - startLat)/(endLat - startLat));
+            //Traversable ways are red, non-traversable ways are blue, and routes are green
             ctx.strokeStyle = "red";
             if (type === "" || type === "unclassified") {
                 ctx.strokeStyle = "blue";
             } else {
                 if (type === "path") {
-                    console.log("yes")
                     ctx.strokeStyle = "#80CA28";
+                    //Route made thicker so they stand out
                     ctx.lineWidth = 5
                     ctx.stroke()
+                    //startCircle used to tell us when to print the circles around the endpoints of the route
                     if (!startCircle) {
+                        //Print circle at beginning of route if not yet printed
                         ctx.moveTo(startPixX, startPixY);
                         ctx.beginPath();
                         ctx.arc(startPixX, startPixY, 15, 0, 2 * Math.PI);
-                        //ctx.rect(startPixX - 21, startPixY - 21, 42, 42)
                         startCircle = true
                     } else {
                         if (i === toPrint.length - 1) {
+                            //Print circle at end of route if this is the last way being printed
                             ctx.moveTo(endPixX, endPixY);
                             ctx.beginPath();
                             ctx.arc(endPixX, endPixY, 15, 0, 2 * Math.PI);
-                            //ctx.rect(endPixX - 21, endPixY - 21, 42, 42)
                         }
                     }
                     startLatWay = parseFloat(parsedWay[1]);
                     startLonWay = parseFloat(parsedWay[2]);
                     endLatWay = parseFloat(parsedWay[3]);
                     endLonWay = parseFloat(parsedWay[4]);
+                    //Updating the message telling user how long their route is and will take to walk
                     totalPathLength = totalPathLength + (Math.sqrt(Math.pow(startLatWay-endLatWay, 2) + Math.pow(startLonWay-endLonWay, 2)));
                     journeyInfoString = "Your journey will be "+Number((totalPathLength*69).toFixed(2))+" miles. This will take you "+Number((totalPathLength*22.25*60).toFixed(2))+" minutes by foot."
-                    console.log(journeyInfoString)
-
 
                 }
             }
             ctx.stroke();
+            //reset line width for non-route ways
             ctx.lineWidth = 1
         }
-        //setJourneyStringMsg(journeyInfoString)
-        console.log(toPrint.length)
     }
+
+    // Makes an axios request and gets the route between the two points defined by the user
     const refreshButton = () => {
         ctx.fillStyle = "#e8d8c3";
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         printCanvas(ways)
-        console.log(getRouteStartLat())
-        console.log(getRouteStartLon())
-        console.log(getRouteEndLat())
-        console.log(getRouteEndLon())
-            console.log(ways.length)
-        console.log(hasClicked)
+        //Used to convert start and end points to coordinates
+        //in case user inputted one set of coordinates and one pair of street names
         if (getRouteStartLat()==="" && getRouteStartLon()==="" && getRouteEndLat()!=="" && getRouteEndLon()!==""){
-
             setRouteStartLon((getReleaseCoordinate()[0]*(getEndLon() - getStartLon())/w +  getStartLon()).toString())
             setRouteStartLat((getReleaseCoordinate()[1]*(getEndLat() - getStartLat())/h +  getStartLat()).toString())
 
         } else if (getRouteEndLat()==="" && getRouteEndLon()==="" && getRouteStartLat()!=="" && getRouteStartLon()!==""){
-
             setRouteEndLon((getReleaseCoordinate()[0]*(getEndLon() - getStartLon())/w +  getStartLon()).toString())
             setRouteEndLat((getReleaseCoordinate()[1]*(getEndLat() - getStartLat())/h +  getStartLat()).toString())
         }
-        console.log(getRouteStartLat())
-        console.log(getRouteStartLon())
-        console.log(getRouteEndLat())
-        console.log(getRouteEndLon())
 
-        //requestWays()
         const toSend = {
-            //TODO: Pass in the values for the data. Follow the format the route expects!
             srclat : getRouteStartLat(),
             srclong : getRouteStartLon(),
             destlat : getRouteEndLat(),
@@ -359,105 +317,59 @@ function Route(props) {
             }
         }
 
-        //Install and import this!
-        //TODO: Fill in 1) location for request 2) your data 3) configuration
         axios.post(
             "http://localhost:4567/route",
             toSend,
             config
         )
             .then(response => {
-                console.log(response.data);
-                //TODO: Go to the Main.java in the server from the stencil, and find what variable you should put here.
-                //Note: It is very important that you understand how this is set up and why it works!
                 let currentRoute = response.data["route"]
                 totalPathLength = 0;
-                setRoute(currentRoute);//console.log  the response.data["route"]
+                //find path
+                setRoute(currentRoute);
+                //print path
                 printCanvas(currentRoute)
+                //tell user length and walking time of path
                 setJourneyStringMsg(journeyInfoString)
             })
 
             .catch(function (error) {
                 console.log(error);
             });
-
-        console.log(ways.length)
-
-        //to test
-        //41.825158
-        // -71.404687
-        //41.827525
-        //-71.400441
     }
 
     const clickedOnCanvas = (clicked) => {
-
-            console.log(clicked)
-
-
             setClickCoordinate(clicked)
-
-
     }
 
     const releasedOnCanvas = (released) => {
-        console.log(released)
         setReleaseCoordinate(released)
-        console.log(getClickCoordinate()[0])
-        console.log(getReleaseCoordinate()[0])
-        console.log(getClickCoordinate()[1])
-        console.log(getReleaseCoordinate()[1])
         if(getClickCoordinate()[0] === getReleaseCoordinate()[0] &&
             getClickCoordinate()[1] === getReleaseCoordinate()[1]) {
-
-            console.log("clicked and released")
+            //Selecting route start/end if clicked and released on same coordinate
             if (hasClicked){
-
-                console.log("entered clicked condition")
-
-                //make post req
-                //
-                // setRouteStartLon(getStartLon() + getSecondReleaseCoordinate()[0]*coordToPix)
-                // setRouteStartLat(getStartLat() + getSecondReleaseCoordinate()[1]*coordToPix)
-                // setRouteEndLon(getStartLon() + parseFloat(released[0])*coordToPix)
-                // setRouteEndLat(getStartLat() + parseFloat(released[1])*coordToPix)
-                // setRouteStartLon(getStartLon() + getSecondReleaseCoordinate()[0]*coordToPix)
-                // setRouteStartLat(getStartLat() - Math.abs(getSecondReleaseCoordinate()[1]*coordToPix))
-                // setRouteEndLon(getStartLon() + parseFloat(released[0])*coordToPix)
-                // setRouteEndLat(getStartLat() - Math.abs(parseFloat(released[1])*coordToPix))
-
-
+                // clicked and released second coordinate, time to calculate route
                 setRouteStartLon(getSecondReleaseCoordinate()[0]*(getEndLon() - getStartLon())/w +  getStartLon())
                 setRouteStartLat(getSecondReleaseCoordinate()[1]*(getEndLat() - getStartLat())/h +  getStartLat())
                 setRouteEndLon(released[0]*(getEndLon() - getStartLon())/w +  getStartLon())
                 setRouteEndLat(released[1]*(getEndLat() - getStartLat())/h +  getStartLat())
-
-               //console.log(w*(getRouteStartLon() - getStartLon())/(getEndLon() - getStartLon()))
-               // console.log(h*(getRouteStartLat() - getStartLat())/(getEndLat() - getStartLat()))
-                //console.log(w*(getRouteEndLon() - getStartLon())/(getEndLon() - getStartLon()))
-                //console.log(h*(getRouteEndLat() - getStartLat())/(getEndLat() - getStartLat()))
-
-                console.log(getRouteStartLat())
-                console.log(getRouteStartLon())
-                console.log(getRouteEndLat())
-                console.log(getRouteEndLon())
+                //finds route and print
                 refreshButton();
-
                 hasClicked = false;
             } else {
+                //clicked and released first coordinate
                 setSecondReleaseCoordinate(released)
                 hasClicked = true;
             }
-            //route start/end
         } else {
-            //panning
+            //Panning if clicked and released on different coordinates
             let dX = (parseFloat(getReleaseCoordinate()[0]) - parseFloat(getClickCoordinate()[0]))*coordToPix
             let dY = (parseFloat(getReleaseCoordinate()[1]) - parseFloat(getClickCoordinate()[1]))*coordToPix
-            console.log(releaseCoordinate[0])
                 setStartLat(getStartLat() + dY);
                 setEndLat(getEndLat() + dY);
                 setEndLon(getEndLon() - dX);
                 setStartLon(getStartLon() - dX);
+                //reprint way and route with new boundaries
                 requestWays();
                 printCanvas(getRoute())
 
@@ -466,53 +378,48 @@ function Route(props) {
     }
 
     const scrollHandler = (scrollVal) => {
-
         if (scrollVal<0){
             //zooming in
             zoomIn()
         } else if (scrollVal>0){
+            //zooming out
             zoomOut()
-
         }
-
-
     }
 
+    const zoomIn = () => {
+        setZoomInFactor(0.91);
+        setZoomCoords();
+    }
 
+    const zoomOut = () => {
+        setZoomInFactor(1.1);
+        setZoomCoords();
+    }
 
-
-
-  const zoomIn = () => {
-      setZoomInFactor(0.91);
-      setZoomCoords();
-  }
-
-  const zoomOut = () => {
-      setZoomInFactor(1.1);
-      setZoomCoords();
-  }
-
-  const setZoomCoords = () => {
-      console.log(zoomInFactor);
-
-      const avgLat = ((getStartLat() + getEndLat())/2)
-      const avgLon = ((getStartLon() + getEndLon())/2)
-
-      const newStartLat = avgLat + (Math.abs(getStartLat() - avgLat) * zoomInFactor);
-      console.log(newStartLat)
-      const newEndLat = avgLat - (Math.abs(getEndLat() - avgLat) * zoomInFactor);
-      console.log(newEndLat);
-      const newEndLon = avgLon + (Math.abs(getEndLon() - avgLon) * zoomInFactor);
-      console.log(newEndLon);
-      const newStartLon = avgLon - (Math.abs(getStartLon() - avgLon) * zoomInFactor);
-      console.log((newStartLon));
-      ReactDOM.unstable_batchedUpdates(() => {
-          setStartLat(newStartLat);
-          setEndLat(newEndLat);
-          setEndLon(newEndLon);
-          setStartLon(newStartLon);
-      })
-      requestWays();
+    const setZoomCoords = () => {
+        //set bounding box based on zoom ratio
+        const avgLat = ((getStartLat() + getEndLat())/2)
+        const avgLon = ((getStartLon() + getEndLon())/2)
+        const newStartLat = avgLat + (Math.abs(getStartLat() - avgLat) * zoomInFactor);
+        const newEndLat = avgLat - (Math.abs(getEndLat() - avgLat) * zoomInFactor);
+        const newEndLon = avgLon + (Math.abs(getEndLon() - avgLon) * zoomInFactor);
+        const newStartLon = avgLon - (Math.abs(getStartLon() - avgLon) * zoomInFactor);
+        setStartLat(newStartLat);
+        setEndLat(newEndLat);
+        setEndLon(newEndLon);
+        setStartLon(newStartLon);
+        //reprint canvas if zooming out
+        if (zoomInFactor > 1) {
+            requestWays();
+        } else {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.lineWidth = 1
+            ctx.fillStyle = "#e8d8c3";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            printCanvas(ways)
+            printCanvas(getRoute())
+        }
   }
 
   return (
@@ -533,7 +440,6 @@ function Route(props) {
         <canvas
             ref={ref}
             style={{ width: w, height: h }}
-            routetorender={props.routetorender}
             onChange={(e) => props.onChange(e.target.value)}
             onMouseDown={(e) => clickedOnCanvas([e.pageX - canvas.offsetLeft, e.pageY - canvas.offsetTop])}
             onMouseUp={(e) => releasedOnCanvas([e.pageX - canvas.offsetLeft, e.pageY - canvas.offsetTop])}
@@ -543,5 +449,3 @@ function Route(props) {
   );
 }
 export default Route;
-
-//<Canvas routetorender={toCanvas} onChange = {refreshCanvas} //onMouseDown = {setClickCoordinate} onMouseUp = {clickedOnCanvas}
