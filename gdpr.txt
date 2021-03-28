@@ -35,3 +35,7 @@ Consider a more complex application that you’ve interacted with before (Facebo
  but there still might be images and videos of the individual on others' walls or in group pages. To truly delete all of
  an individual's data, Facebook may need to run facial recognition algorithms but this is very impractical. If the
  individual is pictured in a group photo with 100 other people, is it really the individual's data?
+
+ Deleting user data -
+ To delete all data of a user with user id 'USER_ID', we could use the following SQL query:
+ DELETE FROM 'map_checkin' WHERE map_checkin.id='USER_ID'

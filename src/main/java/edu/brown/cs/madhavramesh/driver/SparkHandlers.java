@@ -140,7 +140,7 @@ public class SparkHandlers {
         }
 
       }
-
+      System.out.println(sLat+", "+sLon+", "+dLat+", "+dLon);
       String[] results =
           getResults.executeTriggerAction("route",
               new String[] {sLat, sLon, dLat, dLon},

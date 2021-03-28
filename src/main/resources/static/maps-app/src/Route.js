@@ -391,31 +391,21 @@ function Route(props) {
     const scrollHandler = (scrollVal) => {
         if (scrollVal<0){
             //zooming in
-            zoomIn()
+            setZoomCoords(0.91)
         } else if (scrollVal>0){
             //zooming out
-            zoomOut()
+            setZoomCoords(1.1)
         }
     }
 
-    const zoomIn = () => {
-        setZoomInFactor(0.91);
-        setZoomCoords();
-    }
-
-    const zoomOut = () => {
-        setZoomInFactor(1.1);
-        setZoomCoords();
-    }
-
-    const setZoomCoords = () => {
+    const setZoomCoords = (ratio) => {
         //set bounding box based on zoom ratio
         const avgLat = ((getStartLat() + getEndLat())/2)
         const avgLon = ((getStartLon() + getEndLon())/2)
-        const newStartLat = avgLat + (Math.abs(getStartLat() - avgLat) * zoomInFactor);
-        const newEndLat = avgLat - (Math.abs(getEndLat() - avgLat) * zoomInFactor);
-        const newEndLon = avgLon + (Math.abs(getEndLon() - avgLon) * zoomInFactor);
-        const newStartLon = avgLon - (Math.abs(getStartLon() - avgLon) * zoomInFactor);
+        const newStartLat = avgLat + (Math.abs(getStartLat() - avgLat) * ratio);
+        const newEndLat = avgLat - (Math.abs(getEndLat() - avgLat) * ratio);
+        const newEndLon = avgLon + (Math.abs(getEndLon() - avgLon) * ratio);
+        const newStartLon = avgLon - (Math.abs(getStartLon() - avgLon) * ratio);
         setStartLat(newStartLat);
         setEndLat(newEndLat);
         setEndLon(newEndLon);
@@ -431,6 +421,7 @@ function Route(props) {
             printCanvas(ways)
             printCanvas(getRoute())
         }
+        setZoomInFactor(ratio);
   }
 
   return (
@@ -443,8 +434,8 @@ function Route(props) {
         <TextBox label={"Street 2 or End Latitude "} onChange = {setRouteEndLat}/>
         <TextBox label={"Cross Street 2 or End Longitude "} onChange = {setRouteEndLon}/>
         <AwesomeButton type="primary" onPress={() => {refreshButton()}}>Find Path</AwesomeButton>
-        <AwesomeButton type="primary" onPress={() => {zoomIn()}}>+</AwesomeButton>
-        <AwesomeButton type="primary" onPress={() => {zoomOut()}}>-</AwesomeButton>
+        <AwesomeButton type="primary" onPress={() => {setZoomCoords(0.91)}}>+</AwesomeButton>
+        <AwesomeButton type="primary" onPress={() => {setZoomCoords(1.1)}}>-</AwesomeButton>
         <p>
             {journeyStringMsg}
       </p>
