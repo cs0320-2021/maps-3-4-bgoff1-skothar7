@@ -3,6 +3,11 @@ import './App.css';
 import Route from './Route'
 import CheckinFeed from "./checkinFeed";
 
+/**
+ * Main display for the GUI.
+ * @returns {JSX.Element}
+ * @constructor for the main App GUI
+ */
 function App() {
   return (
     <div className="App">
