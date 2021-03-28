@@ -78,12 +78,13 @@ Objects of the Star class are created to implement Stars-specific functionality 
 ###Optimizations
 Any runtime/space optimizations you made beyond the minimum requirements
 
-We use caching in the back-end by storing ways of nodes rather than reading in every way in the beginning. Additionally, we cache the front-end when we zoom in and out 
+We use caching in the back-end by storing ways of nodes rather than reading in every way in the beginning. Additionally, we cache the front-end when we zoom in (Zooming in doesn't require any post requests; we use the ways we already have to render the canvas)
 
-###Instrictions for using the GUI
-How to build/run your program with the GUI\
+###Instructions for using the GUI
+How to build/run your program with the GUI
 ####First terminal window
-In one terminal window, run the checkin feed 
+In one terminal window, run the checkin feed by doing `cs032_maps_location_tracking [port] [num] -[flag]`
+we used port 8080, num=10 and -m for the flag
 
 ####Second terminal window
 In another terminal window, from the repository root directory:\
