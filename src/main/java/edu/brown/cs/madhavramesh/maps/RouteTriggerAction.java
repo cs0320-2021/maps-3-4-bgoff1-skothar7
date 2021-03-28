@@ -72,30 +72,14 @@ public class RouteTriggerAction implements TriggerAction {
       MapNode end = startAndEnd[1];
 
       result = callDijkstra(start, end, isREPL);
-      //assert result.length() > 1;
-
-//      GraphAlgorithms<MapNode, Way> ga = new GraphAlgorithms<>();
-//      Stack<Way> shortestPath = ga.aStar(start, end, new HaversineHeuristic());
-//
-//      if (shortestPath.isEmpty()) {
-//        result.append(start.getStringID() + " -/- " + end.getStringID() + "\n");
-//      }
-//
-//      while (!shortestPath.isEmpty()) {
-//        Way curEdge = shortestPath.pop();
-//        result.append(curEdge.from().getiD() + " -> " + curEdge.to().getiD() + " : "
-//            + curEdge.getiD() + "\n");
-//      }
 
     } catch (NumberFormatException e) {
       System.err.println("ERROR: Arguments provided after route were not decimals or strings");
     } catch (NullPointerException e) {
-      e.printStackTrace();
       System.err.println("ERROR: Map data from database must be loaded first");
     } catch (IllegalArgumentException e) {
       System.err.println(e.getMessage());
     } catch (Exception e) {
-      e.printStackTrace();
       System.err.println("ERROR: Could not run routes command");
     } finally {
       return result;
@@ -199,7 +183,7 @@ public class RouteTriggerAction implements TriggerAction {
     Dijkstra dijkstra = new Dijkstra(Maps.getDg(), start, end);
 
 
-// Run what is supposed to output something
+    // Run what is supposed to output something
     if (isRepl) {
       // Start capturing
       java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
@@ -211,7 +195,6 @@ public class RouteTriggerAction implements TriggerAction {
       String content = out.toString();
       assert content!= null;
       return content;
-      //buffer.reset();
     } else {
       return String.join(";", dijkstra.findShortestPathGUI());
     }
@@ -226,7 +209,6 @@ public class RouteTriggerAction implements TriggerAction {
    * @param nodeID
    */
   private Set<Way> queryWays(String nodeID) {
-    //conn = MapLoader.getConn();
     Connection conn = Maps.getConnection();
 
     PreparedStatement prep = null;
@@ -240,9 +222,7 @@ public class RouteTriggerAction implements TriggerAction {
       ResultSet rs = prep.executeQuery();
 
       while (rs.next()) {
-        //coords = new ArrayList<>();
         String wayID = rs.getString(1); // way ID
-        String name = rs.getString(2);  // name
         String endNodeId = rs.getString(3);  // end node ID
 
         Maps.getDg().addEdge(wayID, Maps.getIdToNodeMap().get(nodeID), Maps.getIdToNodeMap().get(endNodeId),
@@ -250,8 +230,8 @@ public class RouteTriggerAction implements TriggerAction {
       }
       return Maps.getIdToNodeMap().get(nodeID).getWays();
 
-    } catch (SQLException throwables) {
-      return new HashSet<Way>();
+    } catch (SQLException e) {
+      return new HashSet<>();
     }
   }
 
