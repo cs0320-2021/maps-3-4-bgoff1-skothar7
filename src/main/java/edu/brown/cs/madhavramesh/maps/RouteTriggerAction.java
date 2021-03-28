@@ -72,12 +72,10 @@ public class RouteTriggerAction implements TriggerAction {
     } catch (NumberFormatException e) {
       System.err.println("ERROR: Arguments provided after route were not decimals or strings");
     } catch (NullPointerException e) {
-      e.printStackTrace();
       System.err.println("ERROR: Map data from database must be loaded first");
     } catch (IllegalArgumentException e) {
       System.err.println(e.getMessage());
     } catch (Exception e) {
-      e.printStackTrace();
       System.err.println("ERROR: Could not run routes command");
     } finally {
       return result;
@@ -107,13 +105,10 @@ public class RouteTriggerAction implements TriggerAction {
 
       MapNode start = NearestTriggerAction.closestNode(lat1d, long1d, currentNodes);
       MapNode end = NearestTriggerAction.closestNode(lat2d, long2d, currentNodes);
-      System.out.println("yo " + lat1d + " " + long1d + " " + lat2d + " " + long2d);
       return new MapNode[] {start, end};
     } catch (NumberFormatException e) {
       String street1 = args[0].replaceAll("\"", "");
-      System.out.println(street1);
       String crossStreet1 = args[1].replaceAll("\"", "");
-      System.out.println(crossStreet1);
       String street2 = args[2].replaceAll("\"", "");
       String crossStreet2 = args[3].replaceAll("\"", "");
 
@@ -163,7 +158,6 @@ public class RouteTriggerAction implements TriggerAction {
       long1s = rs1.getDouble(3);
       start = NearestTriggerAction.closestNode(lat1s, long1s, currentNodes);
     }
-    System.out.println(id1s);
     rs1.close();
     return start;
   }
@@ -182,7 +176,6 @@ public class RouteTriggerAction implements TriggerAction {
 
     ultimateEndID = end.getStringID();
 
-    System.out.println("dg size: " + Maps.getDg().size());
     Dijkstra dijkstra = new Dijkstra(Maps.getDg(), start, end);
 
 
