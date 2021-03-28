@@ -1,0 +1,41 @@
+
+
+GDPR - Socially Responsible Computing
+
+GDPR requires that you specify exactly what you intend to do with each data point.
+Consider each data point that you’re gathering from your users (Name, location, timestamp).
+Writing to a user, justify why each data point is needed in an imaginary final version of your application:
+what eventual functionality might use the data?
+
+Hi user -
+
+We don't actually need your name for giving you the best routes to take or to separate your information from others',
+because we use a UserID to distinguish between users.
+However, we would like to keep your name on file for a Map Friends feature where you can allow your friends to see your
+name on a map real-time and vice-versa.
+
+We need your location so tht we can use it to display where you are on a route and update
+a route as needed if you choose to go on a new path. We also need your location so that we can render it onto our map,
+making it easier for you to see where you are in relation to other landmarks, real-time.
+
+We need a timestamp of your checkin to a certain location so that we can dynamically update how much further you need
+to travel to get to your destination, how much time it has taken since you started your journey and predict how much
+longer you will need to travel for.
+
+Consider a more complex application that you’ve interacted with before (Facebook, Steam, MyAnimeList)
+ - why might it be difficult to delete all of the data on a user?
+ Consider factors unique to the application you've chosen; specifically those other than volume or size of data.
+
+ Facebook: it is difficult to wipe all the data on a person because their data isn't self-contained on their profile.
+ Friends may have tagged the individual or posted about the individual, in which case it is unclear whether it is in
+ Facebook's purview to alter other people's data. Or, if the individual had posted on someone else's profile, removal
+ of all of the individual's data would also have to remove posts from others' walls.
+
+ Another complicating factor is images and videos: Facebook could remove the tags of the individual off of such media,
+ but there still might be images and videos of the individual on others' walls or in group pages. To truly delete all of
+ an individual's data, Facebook may need to run facial recognition algorithms but this is very impractical. If the
+ individual is pictured in a group photo with 100 other people, is it really the individual's data?
+
+ Deleting user data -
+ To delete all data of a user with user id 'USER_ID', we could use the following SQL query:
+ DELETE FROM 'map_checkin' WHERE map_checkin.id='USER_ID'
