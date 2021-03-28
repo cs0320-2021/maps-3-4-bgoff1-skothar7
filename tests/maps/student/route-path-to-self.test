@@ -1,0 +1,9 @@
+INPUT
+map data/maps/smallMaps.sqlite3
+route 41.82 -71.40 41.82 -71.40
+route "Chihiro Ave" "Radish Spirit Blvd" "Chihiro Ave" "Radish Spirit Blvd"
+OUTPUT
+map set to data/maps/smallMaps.sqlite3
+/n/0 -/- /n/0
+/n/0 -/- /n/0
+END

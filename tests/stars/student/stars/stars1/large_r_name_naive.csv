@@ -1,0 +1,8 @@
+INPUT
+stars data/stars/three-star.csv
+naive_radius 3 "Star Three"
+OUTPUT
+Read 3 stars from data/stars/three-star.csv
+2
+1
+END

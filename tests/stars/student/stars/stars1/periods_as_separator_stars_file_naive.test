@@ -1,0 +1,5 @@
+INPUT
+stars data/stars/star-data-periods-separator.csv
+OUTPUT
+ERROR:
+END

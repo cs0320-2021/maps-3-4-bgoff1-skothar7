@@ -1,0 +1,14 @@
+INPUT
+stars data/stars/ten-star.csv
+naive_neighbors 3 0 0 0
+naive_neighbors 4 -3.4 0.2 0.34
+OUTPUT
+Read 10 stars from data/stars/ten-star.csv
+0
+70667
+71454
+118721
+71457
+71454
+70667
+END

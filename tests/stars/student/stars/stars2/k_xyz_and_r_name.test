@@ -1,0 +1,14 @@
+INPUT
+stars data/stars/ten-star.csv
+neighbors 3 -2.4 0.23 0.9
+radius 3 "Barnard's Star"
+OUTPUT
+Read 10 stars from data/stars/ten-star.csv
+118721
+0
+70667
+71454
+71457
+70667
+0
+END

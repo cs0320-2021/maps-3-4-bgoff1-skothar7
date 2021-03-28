@@ -1,0 +1,7 @@
+INPUT
+map data/maps/maps.sqlite3
+route "Chihiro Ave" "Random Place Blvd" "Kamaji Pl" "Does Not Exist"
+OUTPUT
+map set to data/maps/maps.sqlite3
+ERROR:
+END

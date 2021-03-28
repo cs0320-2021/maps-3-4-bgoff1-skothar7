@@ -1,0 +1,11 @@
+html {
+    height: 100%;
+    font-family: "tahoma", "arial";
+}
+
+body {
+    background-image:
+            linear-gradient(to top, #ffc3a0, #ffafbd);
+    height: 100%;
+    width: 100%;
+}

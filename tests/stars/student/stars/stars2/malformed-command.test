@@ -1,0 +1,13 @@
+INPUT
+starss data/stars/malformed-line.csv
+starss data/stars/malformed-line.csc
+neighbors data/stars/malformed-line.csv
+neighbors 15 0 0 0 "Sol"
+neighbors 15 2 1 0 "Sol"
+neighbors -15 0 0 0
+radius 15 0 0 0 "Sol"
+radius 15 2 1 0 "Sol"
+radius -15 0 0 0
+OUTPUT
+ERROR:
+END
