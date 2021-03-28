@@ -1,18 +1,11 @@
 package edu.brown.cs.madhavramesh.graph;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Stack;
-import java.util.Map;
 import java.util.HashMap;
-import java.util.AbstractMap;
 import java.util.Set;
-import java.util.HashSet;
-import java.util.Queue;
 import java.util.PriorityQueue;
 import edu.brown.cs.madhavramesh.maps.MapNode;
-import edu.brown.cs.madhavramesh.maps.Maps;
 import edu.brown.cs.madhavramesh.maps.RouteTriggerAction;
 import edu.brown.cs.madhavramesh.maps.Way;
 
@@ -103,8 +96,6 @@ public class Dijkstra {
   public void findShortestPath() {
 
     List<String> wayIdsToPrint = new ArrayList<>();
-
-    //String stringBuilder = "";
 
     if (distances.get(end) == Double.POSITIVE_INFINITY) {
       System.out.println(start.getStringID().trim() + " -/- " + end.getStringID().trim());

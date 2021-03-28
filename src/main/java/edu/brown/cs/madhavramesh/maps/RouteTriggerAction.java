@@ -4,28 +4,24 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import edu.brown.cs.madhavramesh.graph.Dijkstra;
-import edu.brown.cs.madhavramesh.graph.DirectedGraph;
 import edu.brown.cs.madhavramesh.kdtree.KDTree;
 import edu.brown.cs.madhavramesh.stars.TriggerAction;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.lang.reflect.Array;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.Stack;
 
-/** Calculates shortest route from one node to another in a map. */
+
+/**
+ * Calculates shortest route from one node to another in a map.
+ */
 public class RouteTriggerAction implements TriggerAction {
   private final int argsCount = 4;
   private String ultimateEndID;
@@ -76,10 +72,12 @@ public class RouteTriggerAction implements TriggerAction {
     } catch (NumberFormatException e) {
       System.err.println("ERROR: Arguments provided after route were not decimals or strings");
     } catch (NullPointerException e) {
+      e.printStackTrace();
       System.err.println("ERROR: Map data from database must be loaded first");
     } catch (IllegalArgumentException e) {
       System.err.println(e.getMessage());
     } catch (Exception e) {
+      e.printStackTrace();
       System.err.println("ERROR: Could not run routes command");
     } finally {
       return result;
@@ -109,20 +107,22 @@ public class RouteTriggerAction implements TriggerAction {
 
       MapNode start = NearestTriggerAction.closestNode(lat1d, long1d, currentNodes);
       MapNode end = NearestTriggerAction.closestNode(lat2d, long2d, currentNodes);
-      return new MapNode[]{start, end};
+      System.out.println("yo " + lat1d + " " + long1d + " " + lat2d + " " + long2d);
+      return new MapNode[] {start, end};
     } catch (NumberFormatException e) {
       String street1 = args[0].replaceAll("\"", "");
+      System.out.println(street1);
       String crossStreet1 = args[1].replaceAll("\"", "");
+      System.out.println(crossStreet1);
       String street2 = args[2].replaceAll("\"", "");
       String crossStreet2 = args[3].replaceAll("\"", "");
 
       MapNode start = nearestToCoords(street1, crossStreet1);
 
-
       MapNode end = nearestToCoords(street2, crossStreet2);
 
       if (!(start == null) && !(end == null)) {
-        return new MapNode[]{start, end};
+        return new MapNode[] {start, end};
       } else {
         throw new IllegalArgumentException("ERROR: No nodes exist at intersections of streets");
       }
@@ -153,15 +153,17 @@ public class RouteTriggerAction implements TriggerAction {
 
     ResultSet rs1 = prep.executeQuery();
 
+    String id1s = null;
     Double lat1s = null;
     Double long1s = null;
     MapNode start = null;
     if (rs1.next()) {
-
+      id1s = rs1.getString(1);
       lat1s = rs1.getDouble(2);
       long1s = rs1.getDouble(3);
       start = NearestTriggerAction.closestNode(lat1s, long1s, currentNodes);
     }
+    System.out.println(id1s);
     rs1.close();
     return start;
   }
@@ -173,17 +175,18 @@ public class RouteTriggerAction implements TriggerAction {
    */
   @Override
   public int[] getNumParameters() {
-    return new int[]{argsCount};
+    return new int[] {argsCount};
   }
 
   public String callDijkstra(MapNode start, MapNode end, boolean isRepl) {
 
     ultimateEndID = end.getStringID();
 
+    System.out.println("dg size: " + Maps.getDg().size());
     Dijkstra dijkstra = new Dijkstra(Maps.getDg(), start, end);
 
 
-    // Run what is supposed to output something
+// Run what is supposed to output something
     if (isRepl) {
       // Start capturing
       java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
@@ -193,12 +196,13 @@ public class RouteTriggerAction implements TriggerAction {
       System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
       // Use captured content
       String content = out.toString();
-      assert content!= null;
+      assert content != null;
       return content;
     } else {
+      System.out
+          .println("routetriggeraction:231 " + String.join(";", dijkstra.findShortestPathGUI()));
       return String.join(";", dijkstra.findShortestPathGUI());
     }
-
 
 
   }
@@ -209,6 +213,7 @@ public class RouteTriggerAction implements TriggerAction {
    * @param nodeID
    */
   private Set<Way> queryWays(String nodeID) {
+
     Connection conn = Maps.getConnection();
 
     PreparedStatement prep = null;
@@ -216,22 +221,25 @@ public class RouteTriggerAction implements TriggerAction {
 
       prep = conn.prepareStatement(
           "SELECT way.id, way.name, node.id, node.latitude, node.longitude FROM way JOIN node "
-              + "WHERE way.type != '' AND way.type!= 'unclassified' AND way.start = " + "\"" + nodeID
+              + "WHERE way.type != '' AND way.type!= 'unclassified' AND way.start = " + "\"" +
+              nodeID
               + "\"" + " AND node.id = way.end");
 
       ResultSet rs = prep.executeQuery();
 
       while (rs.next()) {
         String wayID = rs.getString(1); // way ID
+        String name = rs.getString(2);  // name
         String endNodeId = rs.getString(3);  // end node ID
 
-        Maps.getDg().addEdge(wayID, Maps.getIdToNodeMap().get(nodeID), Maps.getIdToNodeMap().get(endNodeId),
-            Maps.getIdToNodeMap().get(ultimateEndID));
+        Maps.getDg()
+            .addEdge(wayID, Maps.getIdToNodeMap().get(nodeID), Maps.getIdToNodeMap().get(endNodeId),
+                Maps.getIdToNodeMap().get(ultimateEndID));
       }
       return Maps.getIdToNodeMap().get(nodeID).getWays();
 
-    } catch (SQLException e) {
-      return new HashSet<>();
+    } catch (SQLException throwables) {
+      return new HashSet<Way>();
     }
   }
 

@@ -1,8 +1,6 @@
-import logo from './logo.svg';
 import './App.css';
 import TextBox from './TextBox'
 import React, {useState, useEffect, useRef} from 'react'
-import ReactDOM from 'react-dom';
 import { AwesomeButton } from "react-awesome-button";
 import "react-awesome-button/dist/styles.css";
 import axios from "axios";
@@ -41,7 +39,8 @@ let routeEndLat = "";
 let routeEndLon = "";
 let route = [];
 let totalPathLength;
-let journeyInfoString = "Enter your source and destination to find the shortest path and how long it will take to walk there.";
+let journeyInfoString = "Enter your source and destination to find the shortest path and " +
+    "how long it will take to walk there.";
 let hasClicked = false;
 
 
@@ -143,7 +142,14 @@ function getRoute() {
 }
 
 
-
+/**
+ * Contains all the logic for pixel and coordinate conversions; post requests
+ * for rendering ways within a bounded box and for getting the shortest path; drawing on canvas; utilities like
+ * panning, zooming and scrollong;
+ * @param props
+ * @returns {JSX.Element}
+ * @constructor for Route, which is called in App.js
+ */
 function Route(props) {
     const w = 600.0;
     const h = 600.0;
@@ -275,8 +281,11 @@ function Route(props) {
                     endLatWay = parseFloat(parsedWay[3]);
                     endLonWay = parseFloat(parsedWay[4]);
                     //Updating the message telling user how long their route is and will take to walk
-                    totalPathLength = totalPathLength + (Math.sqrt(Math.pow(startLatWay-endLatWay, 2) + Math.pow(startLonWay-endLonWay, 2)));
-                    journeyInfoString = "Your journey will be "+Number((totalPathLength*69).toFixed(2))+" miles. This will take you "+Number((totalPathLength*22.25*60).toFixed(2))+" minutes by foot."
+                    totalPathLength = totalPathLength + (Math.sqrt(Math.pow(startLatWay-endLatWay, 2) +
+                        Math.pow(startLonWay-endLonWay, 2)));
+                    journeyInfoString = "Your journey will be "+Number((totalPathLength*69).toFixed(2))+
+                        " miles. This will take you "+Number((totalPathLength*22.25*60).toFixed(2))+
+                        " minutes by foot."
 
                 }
             }
@@ -298,7 +307,9 @@ function Route(props) {
             setRouteStartLon((getReleaseCoordinate()[0]*(getEndLon() - getStartLon())/w +  getStartLon()).toString())
             setRouteStartLat((getReleaseCoordinate()[1]*(getEndLat() - getStartLat())/h +  getStartLat()).toString())
 
-        } else if (getRouteEndLat()==="" && getRouteEndLon()==="" && getRouteStartLat()!=="" && getRouteStartLon()!==""){
+        } else if (getRouteEndLat()==="" && getRouteEndLon()==="" &&
+            getRouteStartLat()!=="" && getRouteStartLon()!==""){
+
             setRouteEndLon((getReleaseCoordinate()[0]*(getEndLon() - getStartLon())/w +  getStartLon()).toString())
             setRouteEndLat((getReleaseCoordinate()[1]*(getEndLat() - getStartLat())/h +  getStartLat()).toString())
         }

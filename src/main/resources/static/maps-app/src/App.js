@@ -16,7 +16,7 @@ function App() {
         <Route/>
         {/*Feed of server checkins and search box at bottom of page*/}
         <CheckinFeed/>
-          <br> </br>
+
         {/*Spinning tim face*/}
         <img src={logo} className="App-logo" alt="logo" />
         <p>
